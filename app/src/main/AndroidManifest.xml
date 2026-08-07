@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/Theme.AgoraApp"
+        android:usesCleartextTraffic="false">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:configChanges="orientation|screenSize|keyboardHidden">
+
+            <!-- Regular launcher icon -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!--
+                App Links for agora.co.il ONLY.
+                android:autoVerify="true" makes Android attempt Digital Asset Links
+                verification against https://agora.co.il/.well-known/assetlinks.json
+                Since this is NOT your domain, you cannot upload that file, so Android
+                will NOT silently hand this app links to agora.co.il without the user
+                first choosing this app as the default handler manually. See notes.md.
+            -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="agora.co.il" />
+                <data android:scheme="https" android:host="www.agora.co.il" />
+                <data android:scheme="http" android:host="agora.co.il" />
+                <data android:scheme="http" android:host="www.agora.co.il" />
+            </intent-filter>
+
+        </activity>
+    </application>
+</manifest>
