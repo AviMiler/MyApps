@@ -1,0 +1,3 @@
+<resources>
+    <style name="Theme.ClaudeCam.Shim" parent="android:Theme.Translucent.NoTitleBar" />
+</resources>

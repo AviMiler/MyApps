@@ -1,4 +1,4 @@
-name: Build APK
+name: Build APKs
 
 on:
   push:
@@ -10,6 +10,13 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app:
+          - dir: AgoraApp
+            artifact: AgoraApp-debug-apk
+          - dir: ClaudeCameraLauncher
+            artifact: ClaudeCameraLauncher-debug-apk
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,13 +31,15 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Grant execute permission for gradlew
+        working-directory: ${{ matrix.app.dir }}
         run: chmod +x gradlew
 
       - name: Build debug APK
+        working-directory: ${{ matrix.app.dir }}
         run: ./gradlew assembleDebug --no-daemon
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AgoraApp-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          name: ${{ matrix.app.artifact }}
+          path: ${{ matrix.app.dir }}/app/build/outputs/apk/debug/*.apk
