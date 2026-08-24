@@ -96,8 +96,8 @@ class MainActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.clearButton).setOnClickListener { drawView.clearStrokes() }
 
         cropButton.setOnClickListener { enterCropMode() }
-        markerButton.setOnClickListener { selectMode(DrawMode.MARKER) }
-        blackoutButton.setOnClickListener { selectMode(DrawMode.BLACKOUT) }
+        markerButton.setOnClickListener { toggleMode(DrawMode.MARKER) }
+        blackoutButton.setOnClickListener { toggleMode(DrawMode.BLACKOUT) }
         colorButton.setOnClickListener { showColorPopup() }
 
         findViewById<ImageButton>(R.id.cropConfirmButton).setOnClickListener { confirmCrop() }
@@ -114,6 +114,11 @@ class MainActivity : AppCompatActivity() {
         drawView.mode = mode
         markerButton.setBackgroundResource(if (mode == DrawMode.MARKER) R.drawable.bg_icon_button_selected else android.R.color.transparent)
         blackoutButton.setBackgroundResource(if (mode == DrawMode.BLACKOUT) R.drawable.bg_icon_button_selected else android.R.color.transparent)
+    }
+
+    /** Tapping the already-active tool turns it off (back to NONE) instead of re-selecting it. */
+    private fun toggleMode(mode: DrawMode) {
+        selectMode(if (drawView.mode == mode) DrawMode.NONE else mode)
     }
 
     // --- Color popup ---
