@@ -138,13 +138,13 @@ class MainActivity : AppCompatActivity() {
     private fun startCamera() {
         val providerFuture = ProcessCameraProvider.getInstance(this)
         providerFuture.addListener({
-            val provider = providerFuture.get()
-            val preview = Preview.Builder().build().also {
-                it.setSurfaceProvider(cameraPreview.surfaceProvider)
-            }
-            val capture = ImageCapture.Builder().build()
-            imageCapture = capture
             try {
+                val provider = providerFuture.get()
+                val preview = Preview.Builder().build().also {
+                    it.setSurfaceProvider(cameraPreview.surfaceProvider)
+                }
+                val capture = ImageCapture.Builder().build()
+                imageCapture = capture
                 provider.unbindAll()
                 provider.bindToLifecycle(this, CameraSelector.DEFAULT_BACK_CAMERA, preview, capture)
             } catch (e: Exception) {
