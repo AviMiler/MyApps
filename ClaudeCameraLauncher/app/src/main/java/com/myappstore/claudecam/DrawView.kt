@@ -43,21 +43,63 @@ class DrawView @JvmOverloads constructor(
     val viewToImageMatrix = Matrix()
     val imageBounds = RectF()
 
-    /** Extra pinch-zoom applied on top of the fit-to-screen mapping — purely a viewing aid. */
+    /** Extra pinch-zoom + pan applied on top of the fit-to-screen mapping — purely a viewing aid. */
     private val zoomMatrix = Matrix()
     private var zoomScale = 1f
     private val minZoom = 1f
     private val maxZoom = 6f
+    private var lastFocusX = 0f
+    private var lastFocusY = 0f
+    private var lastPanX = 0f
+    private var lastPanY = 0f
+
     private val scaleGestureDetector = ScaleGestureDetector(context, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+        override fun onScaleBegin(detector: ScaleGestureDetector): Boolean {
+            lastFocusX = detector.focusX
+            lastFocusY = detector.focusY
+            return true
+        }
+
         override fun onScale(detector: ScaleGestureDetector): Boolean {
             val newScale = (zoomScale * detector.scaleFactor).coerceIn(minZoom, maxZoom)
             val factor = if (zoomScale == 0f) 1f else newScale / zoomScale
             zoomScale = newScale
             zoomMatrix.postScale(factor, factor, detector.focusX, detector.focusY)
+            zoomMatrix.postTranslate(detector.focusX - lastFocusX, detector.focusY - lastFocusY)
+            lastFocusX = detector.focusX
+            lastFocusY = detector.focusY
+            clampZoomMatrix()
             invalidate()
             return true
         }
     })
+
+    /** Keeps the zoomed image from being dragged so far it leaves an empty gap in the view. */
+    private fun clampZoomMatrix() {
+        if (imageBounds.isEmpty || width == 0 || height == 0) return
+        val rect = RectF(imageBounds)
+        zoomMatrix.mapRect(rect)
+
+        val dx = if (rect.width() <= width) {
+            (width - rect.width()) / 2f - rect.left
+        } else {
+            when {
+                rect.left > 0 -> -rect.left
+                rect.right < width -> width - rect.right
+                else -> 0f
+            }
+        }
+        val dy = if (rect.height() <= height) {
+            (height - rect.height()) / 2f - rect.top
+        } else {
+            when {
+                rect.top > 0 -> -rect.top
+                rect.bottom < height -> height - rect.bottom
+                else -> 0f
+            }
+        }
+        zoomMatrix.postTranslate(dx, dy)
+    }
 
     private class Stroke(val color: Int, val alpha: Int, val widthDp: Float) {
         val path = Path()
@@ -245,7 +287,24 @@ class DrawView @JvmOverloads constructor(
             invalidate()
             return true
         }
-        if (mode == DrawMode.NONE) return true
+        if (mode == DrawMode.NONE) {
+            // No tool selected: a single finger pans the (possibly zoomed) view instead of drawing.
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    lastPanX = event.x
+                    lastPanY = event.y
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    zoomMatrix.postTranslate(event.x - lastPanX, event.y - lastPanY)
+                    lastPanX = event.x
+                    lastPanY = event.y
+                    clampZoomMatrix()
+                    invalidate()
+                }
+                else -> {}
+            }
+            return true
+        }
 
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
