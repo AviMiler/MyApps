@@ -263,6 +263,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun enterCropMode() {
         drawView.mode = DrawMode.NONE
+        drawView.resetZoom()
         toolRow.visibility = View.GONE
         cropConfirmRow.visibility = View.VISIBLE
         cropOverlay.startCrop(drawView.imageBounds)

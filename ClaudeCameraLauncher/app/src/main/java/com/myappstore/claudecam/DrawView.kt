@@ -10,6 +10,7 @@ import android.graphics.Path
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import android.view.View
 
 enum class DrawMode { NONE, MARKER, BLACKOUT }
@@ -42,23 +43,47 @@ class DrawView @JvmOverloads constructor(
     val viewToImageMatrix = Matrix()
     val imageBounds = RectF()
 
+    /** Extra pinch-zoom applied on top of the fit-to-screen mapping — purely a viewing aid. */
+    private val zoomMatrix = Matrix()
+    private var zoomScale = 1f
+    private val minZoom = 1f
+    private val maxZoom = 6f
+    private val scaleGestureDetector = ScaleGestureDetector(context, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+        override fun onScale(detector: ScaleGestureDetector): Boolean {
+            val newScale = (zoomScale * detector.scaleFactor).coerceIn(minZoom, maxZoom)
+            val factor = if (zoomScale == 0f) 1f else newScale / zoomScale
+            zoomScale = newScale
+            zoomMatrix.postScale(factor, factor, detector.focusX, detector.focusY)
+            invalidate()
+            return true
+        }
+    })
+
     private class Stroke(val color: Int, val alpha: Int, val widthDp: Float) {
         val path = Path()
     }
 
     fun hasPhoto(): Boolean = photo != null
 
+    fun resetZoom() {
+        zoomMatrix.reset()
+        zoomScale = 1f
+        invalidate()
+    }
+
     fun setPhoto(bitmap: Bitmap) {
         photo = bitmap
         rotationDegrees = 0
         strokes.clear()
         currentStroke = null
+        resetZoom()
         requestLayout()
         invalidate()
     }
 
     fun rotate90() {
         rotationDegrees = (rotationDegrees + 90) % 360
+        resetZoom()
         invalidate()
     }
 
@@ -86,10 +111,11 @@ class DrawView @JvmOverloads constructor(
         }
     }
 
-    /** Full transform from original bitmap pixel space straight to view (screen) coordinates. */
+    /** Full transform from original bitmap pixel space straight to view (screen) coordinates, including pinch-zoom. */
     private fun bitmapToViewMatrix(): Matrix? {
         val bitmap = photo ?: return null
-        val combined = Matrix(imageToViewMatrix)
+        val combined = Matrix(zoomMatrix)
+        combined.preConcat(imageToViewMatrix)
         combined.preConcat(rotationMatrix(bitmap))
         return combined
     }
@@ -185,6 +211,7 @@ class DrawView @JvmOverloads constructor(
         val combined = bitmapToViewMatrix() ?: return
 
         canvas.save()
+        canvas.concat(zoomMatrix)
         canvas.concat(imageToViewMatrix)
         canvas.drawBitmap(bitmap, rotationMatrix(bitmap), null)
         canvas.restore()
@@ -205,11 +232,25 @@ class DrawView @JvmOverloads constructor(
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (photo == null || mode == DrawMode.NONE) return false
+        if (photo == null) return false
+        // Always consume DOWN (and everything after) so a pinch that starts as a single finger
+        // still gets its second pointer delivered here — returning false on DOWN drops the
+        // whole gesture from this view's dispatch chain, not just that one event.
+        scaleGestureDetector.onTouchEvent(event)
+
+        if (event.pointerCount > 1) {
+            // A second finger joined mid-stroke: it's a pinch, not a draw — drop the in-progress stroke.
+            currentStroke = null
+            touchToBitmapMatrix = null
+            invalidate()
+            return true
+        }
+        if (mode == DrawMode.NONE) return true
+
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
                 val toBitmap = Matrix()
-                if (bitmapToViewMatrix()?.invert(toBitmap) != true) return false
+                if (bitmapToViewMatrix()?.invert(toBitmap) != true) return true
                 touchToBitmapMatrix = toBitmap
 
                 val stroke = when (mode) {
@@ -223,7 +264,7 @@ class DrawView @JvmOverloads constructor(
                 strokes.add(stroke)
             }
             MotionEvent.ACTION_MOVE -> {
-                val toBitmap = touchToBitmapMatrix ?: return false
+                val toBitmap = touchToBitmapMatrix ?: return true
                 val pt = floatArrayOf(event.x, event.y)
                 toBitmap.mapPoints(pt)
                 currentStroke?.path?.lineTo(pt[0], pt[1])
@@ -232,7 +273,7 @@ class DrawView @JvmOverloads constructor(
                 currentStroke = null
                 touchToBitmapMatrix = null
             }
-            else -> return false
+            else -> return true
         }
         invalidate()
         return true
