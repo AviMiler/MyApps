@@ -17,9 +17,12 @@ enum class DrawMode { NONE, MARKER, BLACKOUT }
 /**
  * Shows a captured photo and lets the user annotate it with finger-drawn
  * strokes (a translucent marker, or an opaque blackout/redaction bar).
- * Rotation and stroke history are tracked separately from the bitmap so
- * undo/rotate stay cheap; [renderFlattened] bakes everything into one
- * bitmap at share (or crop) time.
+ *
+ * Strokes are stored in the *original, unrotated* photo's pixel space
+ * (not screen coordinates), so they stay correctly placed on the photo
+ * across rotate90() calls instead of being invalidated by them.
+ * [renderFlattened] bakes rotation + strokes into one bitmap at share
+ * (or crop) time.
  */
 class DrawView @JvmOverloads constructor(
     context: Context,
@@ -30,6 +33,7 @@ class DrawView @JvmOverloads constructor(
     private var rotationDegrees = 0
     private val strokes = mutableListOf<Stroke>()
     private var currentStroke: Stroke? = null
+    private var touchToBitmapMatrix: Matrix? = null
 
     var mode: DrawMode = DrawMode.NONE
     var markerColor: Int = Color.YELLOW
@@ -55,7 +59,6 @@ class DrawView @JvmOverloads constructor(
 
     fun rotate90() {
         rotationDegrees = (rotationDegrees + 90) % 360
-        strokes.clear()
         invalidate()
     }
 
@@ -71,14 +74,34 @@ class DrawView @JvmOverloads constructor(
         invalidate()
     }
 
+    /** Rotation-only transform, from original bitmap pixel space to the current rotated orientation. */
+    private fun rotationMatrix(bitmap: Bitmap): Matrix {
+        return Matrix().apply {
+            postRotate(rotationDegrees.toFloat())
+            when (rotationDegrees) {
+                90 -> postTranslate(bitmap.height.toFloat(), 0f)
+                180 -> postTranslate(bitmap.width.toFloat(), bitmap.height.toFloat())
+                270 -> postTranslate(0f, bitmap.width.toFloat())
+            }
+        }
+    }
+
+    /** Full transform from original bitmap pixel space straight to view (screen) coordinates. */
+    private fun bitmapToViewMatrix(): Matrix? {
+        val bitmap = photo ?: return null
+        val combined = Matrix(imageToViewMatrix)
+        combined.preConcat(rotationMatrix(bitmap))
+        return combined
+    }
+
     /** Returns a new bitmap with rotation and all strokes baked in, at full photo resolution. */
     fun renderFlattened(): Bitmap? {
         val bitmap = photo ?: return null
         recomputeMatrix()
 
+        val rotation = rotationMatrix(bitmap)
         val rotated = if (rotationDegrees != 0) {
-            val m = Matrix().apply { postRotate(rotationDegrees.toFloat()) }
-            Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, m, true)
+            Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, Matrix().apply { postRotate(rotationDegrees.toFloat()) }, true)
         } else {
             bitmap
         }
@@ -94,12 +117,12 @@ class DrawView @JvmOverloads constructor(
         }
 
         for (stroke in strokes) {
-            val scaledPath = Path(stroke.path)
-            scaledPath.transform(viewToImageMatrix)
+            val rotatedPath = Path(stroke.path)
+            rotatedPath.transform(rotation)
             strokePaint.color = stroke.color
             strokePaint.alpha = stroke.alpha
             strokePaint.strokeWidth = stroke.widthDp * scale
-            canvas.drawPath(scaledPath, strokePaint)
+            canvas.drawPath(rotatedPath, strokePaint)
         }
         return output
     }
@@ -159,18 +182,11 @@ class DrawView @JvmOverloads constructor(
         super.onDraw(canvas)
         val bitmap = photo ?: return
         recomputeMatrix()
+        val combined = bitmapToViewMatrix() ?: return
 
         canvas.save()
         canvas.concat(imageToViewMatrix)
-        val m = Matrix().apply {
-            postRotate(rotationDegrees.toFloat())
-            when (rotationDegrees) {
-                90 -> postTranslate(bitmap.height.toFloat(), 0f)
-                180 -> postTranslate(bitmap.width.toFloat(), bitmap.height.toFloat())
-                270 -> postTranslate(0f, bitmap.width.toFloat())
-            }
-        }
-        canvas.drawBitmap(bitmap, m, null)
+        canvas.drawBitmap(bitmap, rotationMatrix(bitmap), null)
         canvas.restore()
 
         val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -179,10 +195,12 @@ class DrawView @JvmOverloads constructor(
             strokeCap = Paint.Cap.ROUND
         }
         for (stroke in strokes) {
+            val viewPath = Path(stroke.path)
+            viewPath.transform(combined)
             strokePaint.color = stroke.color
             strokePaint.alpha = stroke.alpha
             strokePaint.strokeWidth = stroke.widthDp
-            canvas.drawPath(stroke.path, strokePaint)
+            canvas.drawPath(viewPath, strokePaint)
         }
     }
 
@@ -190,19 +208,29 @@ class DrawView @JvmOverloads constructor(
         if (photo == null || mode == DrawMode.NONE) return false
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
+                val toBitmap = Matrix()
+                if (bitmapToViewMatrix()?.invert(toBitmap) != true) return false
+                touchToBitmapMatrix = toBitmap
+
                 val stroke = when (mode) {
                     DrawMode.BLACKOUT -> Stroke(Color.BLACK, 255, 34f)
                     else -> Stroke(markerColor, 170, 26f)
                 }
-                stroke.path.moveTo(event.x, event.y)
+                val pt = floatArrayOf(event.x, event.y)
+                toBitmap.mapPoints(pt)
+                stroke.path.moveTo(pt[0], pt[1])
                 currentStroke = stroke
                 strokes.add(stroke)
             }
             MotionEvent.ACTION_MOVE -> {
-                currentStroke?.path?.lineTo(event.x, event.y)
+                val toBitmap = touchToBitmapMatrix ?: return false
+                val pt = floatArrayOf(event.x, event.y)
+                toBitmap.mapPoints(pt)
+                currentStroke?.path?.lineTo(pt[0], pt[1])
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 currentStroke = null
+                touchToBitmapMatrix = null
             }
             else -> return false
         }
