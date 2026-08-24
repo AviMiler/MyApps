@@ -6,14 +6,19 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.Matrix
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.ScaleGestureDetector
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.LinearLayout
+import android.widget.PopupWindow
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -22,15 +27,16 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.exifinterface.media.ExifInterface
 import java.io.File
 import java.io.FileOutputStream
 
 /**
  * One screen, two states:
  *  - Camera: a live CameraX preview fills the screen with a single shutter
- *    button. Capturing writes straight to a file and jumps to Edit —
- *    there is no OS camera app involved, so there is no confirm/retake
- *    screen to dismiss first.
+ *    button (pinch to zoom). Capturing writes straight to a file and jumps
+ *    to Edit — there is no OS camera app involved, so there is no
+ *    confirm/retake screen to dismiss first.
  *  - Edit: the captured photo (crop / marker / blackout / rotate) with a
  *    floating toolbar, and two small round corner buttons — retake
  *    (back to the live camera) and share (straight into Claude).
@@ -50,9 +56,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var cropButton: ImageButton
     private lateinit var markerButton: ImageButton
     private lateinit var blackoutButton: ImageButton
+    private lateinit var colorButton: ImageButton
 
     private var imageCapture: ImageCapture? = null
-    private var selectedColorSwatch: View? = null
+    private var camera: Camera? = null
+    private var colorPopup: PopupWindow? = null
 
     private val cameraPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -77,6 +85,7 @@ class MainActivity : AppCompatActivity() {
         cropButton = findViewById(R.id.cropButton)
         markerButton = findViewById(R.id.markerButton)
         blackoutButton = findViewById(R.id.blackoutButton)
+        colorButton = findViewById(R.id.colorButton)
 
         shutterButton.setOnClickListener { capturePhoto() }
         findViewById<ImageButton>(R.id.retakeButton).setOnClickListener { showCamera() }
@@ -87,42 +96,48 @@ class MainActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.clearButton).setOnClickListener { drawView.clearStrokes() }
 
         cropButton.setOnClickListener { enterCropMode() }
-        markerButton.setOnClickListener { selectMode(DrawMode.MARKER, markerButton) }
-        blackoutButton.setOnClickListener { selectMode(DrawMode.BLACKOUT, blackoutButton) }
+        markerButton.setOnClickListener { selectMode(DrawMode.MARKER) }
+        blackoutButton.setOnClickListener { selectMode(DrawMode.BLACKOUT) }
+        colorButton.setOnClickListener { showColorPopup() }
 
         findViewById<ImageButton>(R.id.cropConfirmButton).setOnClickListener { confirmCrop() }
         findViewById<ImageButton>(R.id.cropCancelButton).setOnClickListener { exitCropMode() }
 
-        setupColorSwatch(R.id.colorRed, Color.RED)
-        setupColorSwatch(R.id.colorYellow, Color.YELLOW, isDefault = true)
-        setupColorSwatch(R.id.colorGreen, Color.GREEN)
-        setupColorSwatch(R.id.colorWhite, Color.WHITE)
+        drawView.markerColor = Color.YELLOW
+        colorButton.setColorFilter(Color.YELLOW)
 
+        setupPinchToZoom()
         requestCameraPermission()
     }
 
-    private fun setupColorSwatch(viewId: Int, color: Int, isDefault: Boolean = false) {
-        val swatch = findViewById<View>(viewId)
-        swatch.setOnClickListener {
-            drawView.markerColor = color
-            selectMode(DrawMode.MARKER, markerButton)
-            selectSwatch(swatch)
-        }
-        if (isDefault) selectSwatch(swatch)
-    }
-
-    private fun selectSwatch(swatch: View) {
-        selectedColorSwatch?.scaleX = 1f
-        selectedColorSwatch?.scaleY = 1f
-        swatch.scaleX = 1.3f
-        swatch.scaleY = 1.3f
-        selectedColorSwatch = swatch
-    }
-
-    private fun selectMode(mode: DrawMode, activeButton: ImageButton) {
+    private fun selectMode(mode: DrawMode) {
         drawView.mode = mode
         markerButton.setBackgroundResource(if (mode == DrawMode.MARKER) R.drawable.bg_icon_button_selected else android.R.color.transparent)
         blackoutButton.setBackgroundResource(if (mode == DrawMode.BLACKOUT) R.drawable.bg_icon_button_selected else android.R.color.transparent)
+    }
+
+    // --- Color popup ---
+
+    private fun showColorPopup() {
+        val popupView = LayoutInflater.from(this).inflate(R.layout.popup_color_picker, null)
+        val popup = PopupWindow(popupView, LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, true)
+        popup.elevation = 12f
+        colorPopup = popup
+
+        fun pick(color: Int) {
+            drawView.markerColor = color
+            colorButton.setColorFilter(color)
+            selectMode(DrawMode.MARKER)
+            popup.dismiss()
+        }
+
+        popupView.findViewById<View>(R.id.popupColorRed).setOnClickListener { pick(Color.RED) }
+        popupView.findViewById<View>(R.id.popupColorYellow).setOnClickListener { pick(Color.YELLOW) }
+        popupView.findViewById<View>(R.id.popupColorGreen).setOnClickListener { pick(Color.GREEN) }
+        popupView.findViewById<View>(R.id.popupColorWhite).setOnClickListener { pick(Color.WHITE) }
+        popupView.findViewById<View>(R.id.popupColorBlue).setOnClickListener { pick(Color.parseColor("#007AFF")) }
+
+        popup.showAsDropDown(colorButton, 0, 12)
     }
 
     // --- Camera ---
@@ -146,11 +161,28 @@ class MainActivity : AppCompatActivity() {
                 val capture = ImageCapture.Builder().build()
                 imageCapture = capture
                 provider.unbindAll()
-                provider.bindToLifecycle(this, CameraSelector.DEFAULT_BACK_CAMERA, preview, capture)
+                camera = provider.bindToLifecycle(this, CameraSelector.DEFAULT_BACK_CAMERA, preview, capture)
             } catch (e: Exception) {
                 Toast.makeText(this, "לא ניתן לפתוח את המצלמה", Toast.LENGTH_SHORT).show()
             }
         }, ContextCompat.getMainExecutor(this))
+    }
+
+    private fun setupPinchToZoom() {
+        val scaleDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+            override fun onScale(detector: ScaleGestureDetector): Boolean {
+                val cam = camera ?: return false
+                val zoomState = cam.cameraInfo.zoomState.value ?: return false
+                val newRatio = (zoomState.zoomRatio * detector.scaleFactor)
+                    .coerceIn(zoomState.minZoomRatio, zoomState.maxZoomRatio)
+                cam.cameraControl.setZoomRatio(newRatio)
+                return true
+            }
+        })
+        cameraPreview.setOnTouchListener { _, event ->
+            scaleDetector.onTouchEvent(event)
+            true
+        }
     }
 
     private fun showCamera() {
@@ -183,13 +215,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun onPhotoCaptured(file: File) {
-        val bitmap = decodeSampledBitmap(file)
+        val bitmap = decodeUprightBitmap(file)
         if (bitmap == null) {
             Toast.makeText(this, "לא ניתן לטעון את התמונה", Toast.LENGTH_SHORT).show()
             return
         }
         drawView.setPhoto(bitmap)
-        selectMode(DrawMode.NONE, markerButton)
+        selectMode(DrawMode.NONE)
         exitCropMode()
 
         cameraPreview.visibility = View.GONE
@@ -197,7 +229,8 @@ class MainActivity : AppCompatActivity() {
         editContainer.visibility = View.VISIBLE
     }
 
-    private fun decodeSampledBitmap(file: File): Bitmap? {
+    /** Decodes the captured JPEG and applies its EXIF orientation, so the photo is upright without a manual rotate. */
+    private fun decodeUprightBitmap(file: File): Bitmap? {
         val maxDimension = 2048
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeFile(file.absolutePath, bounds)
@@ -208,7 +241,22 @@ class MainActivity : AppCompatActivity() {
         }
 
         val options = BitmapFactory.Options().apply { inSampleSize = sampleSize }
-        return BitmapFactory.decodeFile(file.absolutePath, options)
+        val decoded = BitmapFactory.decodeFile(file.absolutePath, options) ?: return null
+
+        val exifRotation = try {
+            when (ExifInterface(file.absolutePath).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)) {
+                ExifInterface.ORIENTATION_ROTATE_90 -> 90
+                ExifInterface.ORIENTATION_ROTATE_180 -> 180
+                ExifInterface.ORIENTATION_ROTATE_270 -> 270
+                else -> 0
+            }
+        } catch (e: Exception) {
+            0
+        }
+        if (exifRotation == 0) return decoded
+
+        val matrix = Matrix().apply { postRotate(exifRotation.toFloat()) }
+        return Bitmap.createBitmap(decoded, 0, 0, decoded.width, decoded.height, matrix, true)
     }
 
     // --- Crop ---
