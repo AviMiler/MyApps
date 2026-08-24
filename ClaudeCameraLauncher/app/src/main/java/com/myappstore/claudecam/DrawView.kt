@@ -12,11 +12,14 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 
+enum class DrawMode { NONE, MARKER, BLACKOUT }
+
 /**
  * Shows a captured photo and lets the user annotate it with finger-drawn
- * strokes. Rotation and stroke history are tracked separately from the
- * bitmap so undo/rotate stay cheap; [renderFlattened] bakes everything
- * into one bitmap at share time.
+ * strokes (a translucent marker, or an opaque blackout/redaction bar).
+ * Rotation and stroke history are tracked separately from the bitmap so
+ * undo/rotate stay cheap; [renderFlattened] bakes everything into one
+ * bitmap at share (or crop) time.
  */
 class DrawView @JvmOverloads constructor(
     context: Context,
@@ -27,15 +30,19 @@ class DrawView @JvmOverloads constructor(
     private var rotationDegrees = 0
     private val strokes = mutableListOf<Stroke>()
     private var currentStroke: Stroke? = null
-    private var currentColor = Color.RED
 
-    private val displayMatrix = Matrix()
-    private val inverseMatrix = Matrix()
-    private val imageBounds = RectF()
+    var mode: DrawMode = DrawMode.NONE
+    var markerColor: Int = Color.YELLOW
 
-    private class Stroke(val color: Int) {
+    val displayMatrix = Matrix()
+    val inverseMatrix = Matrix()
+    val imageBounds = RectF()
+
+    private class Stroke(val color: Int, val alpha: Int, val widthDp: Float) {
         val path = Path()
     }
+
+    fun hasPhoto(): Boolean = photo != null
 
     fun setPhoto(bitmap: Bitmap) {
         photo = bitmap
@@ -44,10 +51,6 @@ class DrawView @JvmOverloads constructor(
         currentStroke = null
         requestLayout()
         invalidate()
-    }
-
-    fun setColor(color: Int) {
-        currentColor = color
     }
 
     fun rotate90() {
@@ -71,6 +74,7 @@ class DrawView @JvmOverloads constructor(
     /** Returns a new bitmap with rotation and all strokes baked in, at full photo resolution. */
     fun renderFlattened(): Bitmap? {
         val bitmap = photo ?: return null
+        recomputeMatrix()
 
         val rotated = if (rotationDegrees != 0) {
             val m = Matrix().apply { postRotate(rotationDegrees.toFloat()) }
@@ -87,19 +91,37 @@ class DrawView @JvmOverloads constructor(
             style = Paint.Style.STROKE
             strokeJoin = Paint.Join.ROUND
             strokeCap = Paint.Cap.ROUND
-            strokeWidth = 10f * scale
         }
 
         for (stroke in strokes) {
             val scaledPath = Path(stroke.path)
-            val toBitmap = Matrix()
-            inverseMatrix.invert(toBitmap)
-            // strokes are stored in view coordinates; map view -> image -> bitmap
             scaledPath.transform(inverseMatrix)
             strokePaint.color = stroke.color
+            strokePaint.alpha = stroke.alpha
+            strokePaint.strokeWidth = stroke.widthDp * scale
             canvas.drawPath(scaledPath, strokePaint)
         }
         return output
+    }
+
+    /** Crops using the current on-screen rendering (view coordinates), baking in rotation/strokes first. */
+    fun applyCrop(cropRectInViewCoords: RectF) {
+        val flattened = renderFlattened() ?: return
+        val pts = floatArrayOf(
+            cropRectInViewCoords.left, cropRectInViewCoords.top,
+            cropRectInViewCoords.right, cropRectInViewCoords.bottom
+        )
+        inverseMatrix.mapPoints(pts)
+        val left = pts[0].coerceIn(0f, flattened.width.toFloat())
+        val top = pts[1].coerceIn(0f, flattened.height.toFloat())
+        val right = pts[2].coerceIn(0f, flattened.width.toFloat())
+        val bottom = pts[3].coerceIn(0f, flattened.height.toFloat())
+        if (right - left < 4f || bottom - top < 4f) return
+
+        val cropped = Bitmap.createBitmap(
+            flattened, left.toInt(), top.toInt(), (right - left).toInt(), (bottom - top).toInt()
+        )
+        setPhoto(cropped)
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -155,19 +177,23 @@ class DrawView @JvmOverloads constructor(
             style = Paint.Style.STROKE
             strokeJoin = Paint.Join.ROUND
             strokeCap = Paint.Cap.ROUND
-            strokeWidth = 10f
         }
         for (stroke in strokes) {
             strokePaint.color = stroke.color
+            strokePaint.alpha = stroke.alpha
+            strokePaint.strokeWidth = stroke.widthDp
             canvas.drawPath(stroke.path, strokePaint)
         }
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (photo == null) return false
+        if (photo == null || mode == DrawMode.NONE) return false
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                val stroke = Stroke(currentColor)
+                val stroke = when (mode) {
+                    DrawMode.BLACKOUT -> Stroke(Color.BLACK, 255, 34f)
+                    else -> Stroke(markerColor, 170, 26f)
+                }
                 stroke.path.moveTo(event.x, event.y)
                 currentStroke = stroke
                 strokes.add(stroke)

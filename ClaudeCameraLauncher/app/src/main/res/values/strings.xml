@@ -5,6 +5,11 @@
     <string name="rotate">סובב</string>
     <string name="undo">בטל</string>
     <string name="clear">נקה סימונים</string>
+    <string name="crop">חיתוך</string>
+    <string name="marker">מרקור</string>
+    <string name="blackout">השחרה</string>
+    <string name="confirm">אישור</string>
+    <string name="cancel">ביטול</string>
     <string name="share_to_claude">שתף עם Claude</string>
     <string name="camera_permission_needed">נדרשת הרשאת מצלמה כדי לצלם</string>
 </resources>
