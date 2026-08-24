@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="true" />
+
     <!-- Needed on Android 11+ (API 30+) package-visibility rules so this app
-         can detect whether Claude is installed and launch it. -->
+         can detect whether Claude is installed and share directly into it. -->
     <queries>
         <package android:name="com.anthropic.claude" />
     </queries>
@@ -11,18 +14,26 @@
         android:allowBackup="true"
         android:icon="@android:drawable/ic_menu_camera"
         android:label="@string/app_name"
-        android:theme="@style/Theme.ClaudeCam.Shim">
+        android:theme="@style/Theme.ClaudeCam">
 
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:noHistory="true"
-            android:excludeFromRecents="true"
-            android:theme="@style/Theme.ClaudeCam.Shim">
+            android:theme="@style/Theme.ClaudeCam">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 </manifest>

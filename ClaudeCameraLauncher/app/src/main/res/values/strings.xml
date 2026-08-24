@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Claude Camera</string>
+    <string name="take_photo">צלם תמונה</string>
+    <string name="retake">צלם שוב</string>
+    <string name="rotate">סובב</string>
+    <string name="undo">בטל</string>
+    <string name="clear">נקה סימונים</string>
+    <string name="share_to_claude">שתף עם Claude</string>
+    <string name="camera_permission_needed">נדרשת הרשאת מצלמה כדי לצלם</string>
 </resources>

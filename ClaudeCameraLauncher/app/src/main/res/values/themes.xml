@@ -1,3 +1,7 @@
 <resources>
     <style name="Theme.ClaudeCam.Shim" parent="android:Theme.Translucent.NoTitleBar" />
+
+    <style name="Theme.ClaudeCam" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
 </resources>
