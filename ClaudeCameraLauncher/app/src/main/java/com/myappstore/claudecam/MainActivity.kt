@@ -186,9 +186,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showCamera() {
+        colorPopup?.dismiss()
+        exitCropMode()
+        selectMode(DrawMode.NONE)
         editContainer.visibility = View.GONE
         cameraPreview.visibility = View.VISIBLE
         shutterButton.visibility = View.VISIBLE
+    }
+
+    /**
+     * MainActivity is launchMode="singleTask", so re-tapping the app icon while it's already
+     * running (rather than switching back to it via recent apps) delivers here instead of
+     * silently resuming whatever screen was showing — used to always land back on the camera.
+     */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        showCamera()
     }
 
     private fun capturePhoto() {
