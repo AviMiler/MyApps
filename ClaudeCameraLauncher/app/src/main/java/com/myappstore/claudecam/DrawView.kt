@@ -34,8 +34,8 @@ class DrawView @JvmOverloads constructor(
     var mode: DrawMode = DrawMode.NONE
     var markerColor: Int = Color.YELLOW
 
-    val displayMatrix = Matrix()
-    val inverseMatrix = Matrix()
+    val imageToViewMatrix = Matrix()
+    val viewToImageMatrix = Matrix()
     val imageBounds = RectF()
 
     private class Stroke(val color: Int, val alpha: Int, val widthDp: Float) {
@@ -95,7 +95,7 @@ class DrawView @JvmOverloads constructor(
 
         for (stroke in strokes) {
             val scaledPath = Path(stroke.path)
-            scaledPath.transform(inverseMatrix)
+            scaledPath.transform(viewToImageMatrix)
             strokePaint.color = stroke.color
             strokePaint.alpha = stroke.alpha
             strokePaint.strokeWidth = stroke.widthDp * scale
@@ -111,7 +111,7 @@ class DrawView @JvmOverloads constructor(
             cropRectInViewCoords.left, cropRectInViewCoords.top,
             cropRectInViewCoords.right, cropRectInViewCoords.bottom
         )
-        inverseMatrix.mapPoints(pts)
+        viewToImageMatrix.mapPoints(pts)
         val left = pts[0].coerceIn(0f, flattened.width.toFloat())
         val top = pts[1].coerceIn(0f, flattened.height.toFloat())
         val right = pts[2].coerceIn(0f, flattened.width.toFloat())
@@ -149,10 +149,10 @@ class DrawView @JvmOverloads constructor(
         val top = (height - dispH) / 2f
         imageBounds.set(left, top, left + dispW, top + dispH)
 
-        displayMatrix.reset()
-        displayMatrix.postScale(scale, scale)
-        displayMatrix.postTranslate(left, top)
-        displayMatrix.invert(inverseMatrix)
+        imageToViewMatrix.reset()
+        imageToViewMatrix.postScale(scale, scale)
+        imageToViewMatrix.postTranslate(left, top)
+        imageToViewMatrix.invert(viewToImageMatrix)
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -161,7 +161,7 @@ class DrawView @JvmOverloads constructor(
         recomputeMatrix()
 
         canvas.save()
-        canvas.concat(displayMatrix)
+        canvas.concat(imageToViewMatrix)
         val m = Matrix().apply {
             postRotate(rotationDegrees.toFloat())
             when (rotationDegrees) {
