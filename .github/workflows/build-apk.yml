@@ -17,6 +17,8 @@ jobs:
             artifact: AgoraApp-debug-apk
           - dir: ClaudeCameraLauncher
             artifact: ClaudeCameraLauncher-debug-apk
+          - dir: Yad2App
+            artifact: Yad2App-debug-apk
     steps:
       - name: Checkout
         uses: actions/checkout@v4
