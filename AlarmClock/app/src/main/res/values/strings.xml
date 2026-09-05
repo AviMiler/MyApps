@@ -1,0 +1,44 @@
+<resources>
+    <string name="app_name">שעון מעורר</string>
+    <string name="edit_alarm">עריכת התראה</string>
+    <string name="no_alarms">אין עדיין התראות. הקישו על + כדי להוסיף.</string>
+    <string name="add_alarm">הוספת התראה</string>
+    <string name="save">שמירה</string>
+    <string name="delete">מחיקה</string>
+    <string name="snooze">נודניק</string>
+    <string name="dismiss">כיבוי</string>
+    <string name="snooze_minutes">נודניק (%1$d דק׳)</string>
+    <string name="once">חד־פעמי</string>
+    <string name="label_hint">שם ההתראה (לא חובה)</string>
+    <string name="repeat_days">ימי חזרה</string>
+    <string name="ring_duration_title">משך הצלצול</string>
+    <string name="minutes">דקות</string>
+    <string name="seconds">שניות</string>
+    <string name="duration_summary">סה״כ %1$d שניות (%2$d דק׳ ו־%3$d שנ׳)</string>
+    <string name="duration_short">%1$d:%2$02d צלצול</string>
+    <string name="error_duration">משך הצלצול חייב להיות גדול מאפס</string>
+    <string name="sound_title">צליל ועקיפת הגדרות הטלפון</string>
+    <string name="override_switch">עקיפת כל הגדרות הצליל של הטלפון</string>
+    <string name="override_explain">מנגן בערוץ ההתראות בעוצמה שנבחרה גם במצב שקט/רטט, ומשבית זמנית את מצב \"נא לא להפריע\" (נדרשת הרשאת גישה למדיניות ההתראות).</string>
+    <string name="override_short">עוקף שקט</string>
+    <string name="vibrate_switch">רטט</string>
+    <string name="volume_title">עוצמת שמע</string>
+    <string name="volume_value">%1$d%%</string>
+    <string name="snooze_title">משך נודניק (דקות)</string>
+    <string name="alarm_saved">ההתראה נשמרה</string>
+    <string name="channel_alarm">צלצול התראה</string>
+    <string name="ring_remaining">נותרו %1$d:%2$02d</string>
+    <string name="dnd_access_hint">אשרו לאפליקציה גישה למצב \"נא לא להפריע\" כדי שההתראה תעקוף אותו</string>
+    <string name="exact_alarm_warning">ללא הרשאת \"התראות מדויקות\" ההתראות עלולות להתעכב.</string>
+    <string name="grant">אישור הרשאה</string>
+
+    <string-array name="day_names_short">
+        <item>א׳</item>
+        <item>ב׳</item>
+        <item>ג׳</item>
+        <item>ד׳</item>
+        <item>ה׳</item>
+        <item>ו׳</item>
+        <item>ש׳</item>
+    </string-array>
+</resources>

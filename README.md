@@ -8,6 +8,8 @@ push, ומעלה כל APK כ-artifact נפרד.
 ## אפליקציות
 
 - [`AgoraApp/`](AgoraApp/) — דפדפן-קיוסק נעול לאתר agora.co.il בלבד.
+- [`AlarmClock/`](AlarmClock/) — שעון מעורר מלא עם עקיפת הגדרות הצליל של
+  הטלפון ומשך צלצול חופשי בדקות ושניות.
 - [`ClaudeCameraLauncher/`](ClaudeCameraLauncher/) — אפליקציית שיגור שפותחת
   מיד את אפליקציית Claude (ראו את ה-README של האפליקציה למגבלות).
 
