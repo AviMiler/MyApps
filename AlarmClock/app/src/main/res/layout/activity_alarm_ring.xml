@@ -31,16 +31,9 @@
         android:textSize="16sp" />
 
     <Button
-        android:id="@+id/ringSnooze"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="48dp"
-        android:text="@string/snooze" />
-
-    <Button
         android:id="@+id/ringDismiss"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="48dp"
         android:text="@string/dismiss" />
 </LinearLayout>

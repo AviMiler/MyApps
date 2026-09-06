@@ -54,11 +54,6 @@ class AlarmService : Service() {
                 stopEverything()
                 return START_NOT_STICKY
             }
-            ACTION_SNOOZE -> {
-                currentAlarm?.let { AlarmScheduler.scheduleSnooze(this, it, it.snoozeMinutes) }
-                stopEverything()
-                return START_NOT_STICKY
-            }
         }
 
         val alarmId = intent?.getIntExtra(AlarmScheduler.EXTRA_ALARM_ID, -1) ?: -1
@@ -232,13 +227,6 @@ class AlarmService : Service() {
             Intent(this, AlarmService::class.java).setAction(ACTION_STOP),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        val snooze = PendingIntent.getService(
-            this,
-            alarm.id + 200_000,
-            Intent(this, AlarmService::class.java).setAction(ACTION_SNOOZE),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
         val title = alarm.label.ifBlank { getString(R.string.app_name) }
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
@@ -248,7 +236,6 @@ class AlarmService : Service() {
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setOngoing(true)
             .setFullScreenIntent(fullScreen, true)
-            .addAction(0, getString(R.string.snooze), snooze)
             .addAction(0, getString(R.string.dismiss), dismiss)
             .build()
     }
@@ -256,7 +243,6 @@ class AlarmService : Service() {
     companion object {
         const val ACTION_START = "com.myappstore.alarmclock.START"
         const val ACTION_STOP = "com.myappstore.alarmclock.STOP"
-        const val ACTION_SNOOZE = "com.myappstore.alarmclock.SNOOZE"
         const val ACTION_ALARM_FINISHED = "com.myappstore.alarmclock.FINISHED"
         private const val CHANNEL_ID = "alarm_ring"
         private const val NOTIFICATION_ID = 42

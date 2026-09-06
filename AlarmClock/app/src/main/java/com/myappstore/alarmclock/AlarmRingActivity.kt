@@ -35,20 +35,15 @@ class AlarmRingActivity : AppCompatActivity() {
         val labelView = findViewById<TextView>(R.id.ringLabel)
         val clockView = findViewById<TextView>(R.id.ringClock)
         val remainingView = findViewById<TextView>(R.id.ringRemaining)
-        val snoozeButton = findViewById<Button>(R.id.ringSnooze)
 
         clockView.text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
         labelView.text = alarm?.label?.ifBlank { getString(R.string.app_name) }
             ?: getString(R.string.app_name)
 
         if (alarm != null) {
-            snoozeButton.text = getString(R.string.snooze_minutes, alarm.snoozeMinutes)
             startCountdown(alarm.ringSeconds, remainingView)
-        } else {
-            snoozeButton.isEnabled = false
         }
 
-        snoozeButton.setOnClickListener { sendToService(AlarmService.ACTION_SNOOZE) }
         findViewById<Button>(R.id.ringDismiss).setOnClickListener {
             sendToService(AlarmService.ACTION_STOP)
         }
@@ -101,6 +96,6 @@ class AlarmRingActivity : AppCompatActivity() {
         runCatching { unregisterReceiver(finishedReceiver) }
     }
 
-    /** Back must not silently kill the alarm - the user has to choose snooze or dismiss. */
+    /** Back must not silently kill the alarm - the user has to press dismiss. */
     override fun onBackPressed() = Unit
 }

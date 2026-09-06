@@ -5,9 +5,7 @@
     <string name="add_alarm">הוספת התראה</string>
     <string name="save">שמירה</string>
     <string name="delete">מחיקה</string>
-    <string name="snooze">נודניק</string>
     <string name="dismiss">כיבוי</string>
-    <string name="snooze_minutes">נודניק (%1$d דק׳)</string>
     <string name="once">חד־פעמי</string>
     <string name="label_hint">שם ההתראה (לא חובה)</string>
     <string name="repeat_days">ימי חזרה</string>
@@ -24,7 +22,9 @@
     <string name="vibrate_switch">רטט</string>
     <string name="volume_title">עוצמת שמע</string>
     <string name="volume_value">%1$d%%</string>
-    <string name="snooze_title">משך נודניק (דקות)</string>
+    <string name="sound_choice_title">בחירת צליל</string>
+    <string name="sound_picker_title">בחירת צליל התראה</string>
+    <string name="sound_default">ברירת המחדל של המערכת</string>
     <string name="alarm_saved">ההתראה נשמרה</string>
     <string name="channel_alarm">צלצול התראה</string>
     <string name="ring_remaining">נותרו %1$d:%2$02d</string>

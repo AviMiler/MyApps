@@ -24,7 +24,6 @@ data class Alarm(
     /** Force the alarm stream to [volumePercent] and ignore silent/vibrate/Do-Not-Disturb. */
     var overrideSystemSound: Boolean = true,
     var vibrate: Boolean = true,
-    var snoozeMinutes: Int = 5,
     var soundUri: String? = null
 ) {
     fun toJson(): JSONObject = JSONObject().apply {
@@ -38,7 +37,6 @@ data class Alarm(
         put("volumePercent", volumePercent)
         put("overrideSystemSound", overrideSystemSound)
         put("vibrate", vibrate)
-        put("snoozeMinutes", snoozeMinutes)
         put("soundUri", soundUri ?: JSONObject.NULL)
     }
 
@@ -80,7 +78,6 @@ data class Alarm(
                 volumePercent = o.optInt("volumePercent", 100),
                 overrideSystemSound = o.optBoolean("overrideSystemSound", true),
                 vibrate = o.optBoolean("vibrate", true),
-                snoozeMinutes = o.optInt("snoozeMinutes", 5),
                 soundUri = if (o.isNull("soundUri")) null else o.optString("soundUri")
             )
         }

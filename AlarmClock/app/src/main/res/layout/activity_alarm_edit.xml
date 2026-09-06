@@ -229,15 +229,15 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="@string/snooze_title"
+            android:text="@string/sound_choice_title"
             android:textStyle="bold" />
 
-        <EditText
-            android:id="@+id/snoozeInput"
+        <Button
+            android:id="@+id/soundButton"
+            style="?attr/materialButtonOutlinedStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:importantForAutofill="no"
-            android:inputType="number" />
+            android:text="@string/sound_default" />
 
         <Button
             android:id="@+id/saveButton"

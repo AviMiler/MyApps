@@ -36,17 +36,6 @@ object AlarmScheduler {
         }
     }
 
-    fun scheduleSnooze(context: Context, alarm: Alarm, minutes: Int) {
-        val manager = context.getSystemService(AlarmManager::class.java)
-        val triggerAt = System.currentTimeMillis() + minutes * 60_000L
-        val pending = pendingIntent(context, alarm.id)
-        if (canScheduleExact(context)) {
-            manager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pending)
-        } else {
-            manager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pending)
-        }
-    }
-
     fun cancel(context: Context, alarmId: Int) {
         context.getSystemService(AlarmManager::class.java).cancel(pendingIntent(context, alarmId))
     }
