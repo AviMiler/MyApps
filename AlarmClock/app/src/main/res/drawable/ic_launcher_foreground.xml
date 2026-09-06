@@ -1,0 +1,66 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Bell feet -->
+    <group
+        android:pivotX="33"
+        android:pivotY="40"
+        android:translateX="33"
+        android:translateY="40"
+        android:rotation="-35">
+        <path
+            android:pathData="M-4.5,-20 L4.5,-20 L4.5,0 L-4.5,0 Z"
+            android:fillColor="#123C57" />
+    </group>
+    <group
+        android:pivotX="75"
+        android:pivotY="40"
+        android:translateX="75"
+        android:translateY="40"
+        android:rotation="35">
+        <path
+            android:pathData="M-4.5,-20 L4.5,-20 L4.5,0 L-4.5,0 Z"
+            android:fillColor="#123C57" />
+    </group>
+
+    <!-- Top button and rod -->
+    <path
+        android:pathData="M51,24 L57,24 L57,40 L51,40 Z"
+        android:fillColor="#123C57" />
+    <path
+        android:pathData="M54,25 m-6,0 a6,6 0 1,0 12,0 a6,6 0 1,0 -12,0"
+        android:fillColor="#FFB100" />
+
+    <!-- Clock face -->
+    <path
+        android:pathData="M54,60 m-26,0 a26,26 0 1,0 52,0 a26,26 0 1,0 -52,0"
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#123C57"
+        android:strokeWidth="3" />
+
+    <!-- Hour ticks -->
+    <path android:pathData="M54,60 m-1.6,-22.4 a1.6,1.6 0 1,0 3.2,0 a1.6,1.6 0 1,0 -3.2,0" android:fillColor="#123C57" />
+    <path android:pathData="M54,60 m20.8,-1.6 a1.6,1.6 0 1,0 0,3.2 a1.6,1.6 0 1,0 0,-3.2" android:fillColor="#123C57" />
+    <path android:pathData="M54,60 m-1.6,20.8 a1.6,1.6 0 1,0 3.2,0 a1.6,1.6 0 1,0 -3.2,0" android:fillColor="#123C57" />
+    <path android:pathData="M54,60 m-22.4,-1.6 a1.6,1.6 0 1,0 0,3.2 a1.6,1.6 0 1,0 0,-3.2" android:fillColor="#123C57" />
+
+    <!-- Hands -->
+    <path
+        android:pathData="M54,60 L45,47"
+        android:strokeColor="#123C57"
+        android:strokeWidth="3.2"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M54,60 L67,53"
+        android:strokeColor="#FFB100"
+        android:strokeWidth="3.2"
+        android:strokeLineCap="round" />
+
+    <!-- Center pin -->
+    <path
+        android:pathData="M54,60 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0"
+        android:fillColor="#123C57" />
+</vector>
