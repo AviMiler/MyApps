@@ -36,6 +36,7 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Contacts
 import androidx.compose.material.icons.rounded.Forum
 import androidx.compose.material.icons.rounded.Inbox
+import androidx.compose.material.icons.rounded.MarkChatUnread
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material.icons.rounded.PriorityHigh
@@ -80,7 +81,7 @@ object HealthChecks {
 
     enum class Level { REQUIRED, RECOMMENDED, OPTIONAL, INFO }
 
-    enum class Check { SMS, CONTACTS, NOTIFICATIONS, BATTERY, EXACT_ALARMS, PHONE_STATE, READ_SMS, SIM, AIRPLANE }
+    enum class Check { SMS, CONTACTS, NOTIFICATIONS, BATTERY, CATCH, EXACT_ALARMS, PHONE_STATE, READ_SMS, SIM, AIRPLANE }
 
     data class Item(val check: Check, val ok: Boolean, val level: Level)
 
@@ -90,6 +91,7 @@ object HealthChecks {
             Item(Check.CONTACTS, Permissions.canReadContacts(context), Level.RECOMMENDED),
             Item(Check.NOTIFICATIONS, Permissions.canNotify(context), Level.RECOMMENDED),
             Item(Check.BATTERY, Permissions.ignoresBatteryOptimizations(context), Level.RECOMMENDED),
+            Item(Check.CATCH, Permissions.canReadNotifications(context), Level.RECOMMENDED),
         )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             items += Item(Check.EXACT_ALARMS, Permissions.canUseExactAlarms(context), Level.OPTIONAL)
@@ -112,6 +114,7 @@ private fun textFor(check: HealthChecks.Check): CheckText = when (check) {
     HealthChecks.Check.CONTACTS -> CheckText(Icons.Rounded.Contacts, R.string.health_contacts, R.string.health_contacts_ok, R.string.health_contacts_bad, R.string.grant_access)
     HealthChecks.Check.NOTIFICATIONS -> CheckText(Icons.Rounded.Notifications, R.string.health_notifications, R.string.health_notifications_ok, R.string.health_notifications_bad, R.string.grant_access)
     HealthChecks.Check.BATTERY -> CheckText(Icons.Rounded.BatteryChargingFull, R.string.health_battery, R.string.health_battery_ok, R.string.health_battery_bad, R.string.health_fix_battery)
+    HealthChecks.Check.CATCH -> CheckText(Icons.Rounded.MarkChatUnread, R.string.health_catch, R.string.health_catch_ok, R.string.health_catch_bad, R.string.catch_enable)
     HealthChecks.Check.EXACT_ALARMS -> CheckText(Icons.Rounded.Alarm, R.string.health_exact, R.string.health_exact_ok, R.string.health_exact_bad, R.string.grant_access)
     HealthChecks.Check.PHONE_STATE -> CheckText(Icons.Rounded.PhoneAndroid, R.string.health_phone, R.string.health_phone_ok, R.string.health_phone_bad, R.string.grant_access)
     HealthChecks.Check.READ_SMS -> CheckText(Icons.Rounded.Inbox, R.string.health_read_sms, R.string.health_read_sms_ok, R.string.health_read_sms_bad, R.string.grant_access)
@@ -143,6 +146,7 @@ fun HealthScreen(onBack: () -> Unit) {
                     Permissions.open(context, Permissions.notificationSettingsIntent(context))
                 }
             HealthChecks.Check.BATTERY -> Permissions.open(context, Permissions.batteryIntent(context))
+            HealthChecks.Check.CATCH -> Permissions.openNotificationAccess(context)
             HealthChecks.Check.EXACT_ALARMS -> Permissions.open(context, Permissions.exactAlarmIntent(context))
             HealthChecks.Check.PHONE_STATE -> singleLauncher.launch(Permissions.PHONE_STATE)
             HealthChecks.Check.READ_SMS -> singleLauncher.launch(Permissions.READ_SMS)

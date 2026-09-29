@@ -40,6 +40,7 @@ import androidx.compose.material.icons.rounded.DoneAll
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.HourglassTop
 import androidx.compose.material.icons.rounded.Key
+import androidx.compose.material.icons.rounded.MarkChatUnread
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.RemoveCircleOutline
 import androidx.compose.material.icons.rounded.Schedule
@@ -79,6 +80,7 @@ import androidx.compose.ui.unit.sp
 import com.myappstore.smsforwarder.Graph
 import com.myappstore.smsforwarder.R
 import com.myappstore.smsforwarder.core.Hebrew
+import com.myappstore.smsforwarder.core.Origin
 import com.myappstore.smsforwarder.core.Phones
 import com.myappstore.smsforwarder.data.EventKind
 import com.myappstore.smsforwarder.data.EventStatus
@@ -415,6 +417,14 @@ private fun EventRow(
                     style = MaterialTheme.typography.labelMedium,
                     color = style.color,
                 )
+            }
+            if (event.origin == Origin.NOTIFICATION) {
+                Spacer(Modifier.height(6.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Rounded.MarkChatUnread, contentDescription = null, tint = colors.inkFaint, modifier = Modifier.size(14.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text(stringResource(R.string.log_from_notification), style = MaterialTheme.typography.labelSmall, color = colors.inkSoft)
+                }
             }
             if (expanded) {
                 Spacer(Modifier.height(12.dp))

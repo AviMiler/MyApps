@@ -1,11 +1,13 @@
 package com.myappstore.smsforwarder.data
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.myappstore.smsforwarder.core.Days
 import com.myappstore.smsforwarder.core.Hebrew
 import com.myappstore.smsforwarder.core.MessageTemplate
+import com.myappstore.smsforwarder.core.Origin
 import com.myappstore.smsforwarder.core.Phones
 import com.myappstore.smsforwarder.core.SourceMode
 
@@ -146,6 +148,8 @@ data class ForwardEvent(
     val sentAt: Long = 0L,
     val deliveredAt: Long = 0L,
     val batchSize: Int = 1,
+    /** [Origin.SMS], or [Origin.NOTIFICATION] when the SMS never reached the app and the notification was used. */
+    @ColumnInfo(defaultValue = "0") val origin: Int = Origin.SMS,
 ) {
     val senderLabel: String get() = senderName?.takeIf { it.isNotBlank() } ?: Phones.pretty(sender)
     val recipientLabel: String get() = recipientName?.takeIf { it.isNotBlank() } ?: Phones.pretty(recipient)

@@ -469,6 +469,16 @@
     <string name="health_airplane_bad">מצב טיסה פעיל — אי אפשר לקבל או לשלוח SMS.</string>
     <string name="health_fix_airplane">להגדרות</string>
     <string name="tips_title">טיפים</string>
+    <string name="catch_title">קליטה מההתראות</string>
+    <string name="catch_desc">אם הודעת SMS לא הגיעה להלאה, היא תיקלט מההתראה של אפליקציית ההודעות ותועבר כמה שניות אחרי שהגיעה. הודעה שכבר נקלטה כרגיל לא תועבר פעמיים. כך נתפסות גם הודעות צ׳אט (RCS). הלאה קוראת רק התראות של אפליקציות הודעות.</string>
+    <string name="catch_on">פעיל</string>
+    <string name="catch_off">כבוי — צריך לאשר להלאה גישה להתראות</string>
+    <string name="catch_enable">הפעלה</string>
+    <string name="catch_manage">ניהול הגישה</string>
+    <string name="health_catch">קליטה מההתראות</string>
+    <string name="health_catch_ok">הודעות שהטלפון לא מסר להלאה ייקלטו מההתראה.</string>
+    <string name="health_catch_bad">מומלץ: כך לא מתפספסות הודעות שהטלפון לא מסר להלאה, וגם הודעות צ׳אט.</string>
+    <string name="log_from_notification">נקלטה מההתראה</string>
     <string name="tip_rcs_title">הודעות צ׳אט (RCS)</string>
     <string name="tip_rcs">הודעות שנשלחות כצ׳אט (RCS) אינן SMS, ולכן הן לא מגיעות להלאה בכלל ולא מופיעות ביומן. אם הודעות משולח מסוים לא מופיעות ביומן, כנראה שהוא שולח בצ׳אט. הפתרון: ב-Google Messages בטלפון הזה ← תמונת הפרופיל ← הגדרות ← צ׳אטים של RCS ← לכבות. מאז יגיעו אליכם הודעות SMS רגילות, והלאה תעביר אותן.</string>
     <string name="tip_restricted_title">בקשת ההרשאה לא מופיעה?</string>

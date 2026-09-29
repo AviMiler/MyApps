@@ -13,16 +13,24 @@ object SourceMode {
 }
 
 object SenderMatch {
+    /**
+     * [senderName] is set for messages read from a notification, which may show a contact's name
+     * instead of the number; it then also matches senders picked with that name.
+     */
     fun matches(
         mode: Int,
         sources: List<String>,
         exclusions: List<String>,
         sender: String,
         senderIsContact: Boolean,
+        senderName: String? = null,
+        sourceNames: List<String?> = emptyList(),
+        exclusionNames: List<String?> = emptyList(),
     ): Boolean {
-        if (exclusions.any { Phones.same(it, sender) }) return false
+        fun named(names: List<String?>) = senderName != null && names.any { CaptureLog.sameName(it, senderName) }
+        if (exclusions.any { Phones.same(it, sender) } || named(exclusionNames)) return false
         return when (mode) {
-            SourceMode.SELECTED -> sources.any { Phones.same(it, sender) }
+            SourceMode.SELECTED -> sources.any { Phones.same(it, sender) } || named(sourceNames)
             SourceMode.UNKNOWN -> !senderIsContact
             SourceMode.EVERYONE -> true
             else -> false

@@ -30,12 +30,14 @@ import androidx.compose.material.icons.automirrored.rounded.HelpOutline
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.Backup
 import androidx.compose.material.icons.rounded.Bedtime
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.LocationCity
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.LockOpen
+import androidx.compose.material.icons.rounded.MarkChatUnread
 import androidx.compose.material.icons.rounded.Loop
 import androidx.compose.material.icons.automirrored.rounded.MergeType
 import androidx.compose.material.icons.rounded.MonitorHeart
@@ -91,6 +93,7 @@ import com.myappstore.smsforwarder.ui.components.IconBadge
 import com.myappstore.smsforwarder.ui.components.InlineAction
 import com.myappstore.smsforwarder.ui.components.LocalResumeTick
 import com.myappstore.smsforwarder.ui.components.NavRow
+import com.myappstore.smsforwarder.ui.components.Pill
 import com.myappstore.smsforwarder.ui.components.SectionHeader
 import com.myappstore.smsforwarder.ui.components.Segmented
 import com.myappstore.smsforwarder.ui.components.SwitchRow
@@ -121,6 +124,7 @@ fun SettingsScreen(
     var phoneGranted by remember(tick) { mutableStateOf(Permissions.canReadPhoneState(context)) }
     val sims = remember(tick, phoneGranted) { Sims.active(context) }
     val healthIssues = remember(tick) { HealthChecks.issueCount(context) }
+    val catchGranted = remember(tick) { Permissions.canReadNotifications(context) }
     val now = rememberNow()
 
     var cityDialog by remember { mutableStateOf(false) }
@@ -155,6 +159,7 @@ fun SettingsScreen(
         item(key = "title") {
             SectionHeader(stringResource(R.string.settings_title), Modifier.padding(top = 8.dp))
         }
+        item(key = "catch") { CatchSection(catchGranted) }
         item(key = "rest") { RestSection(settings, now, onPickCity = { cityDialog = true }) }
         item(key = "quiet") { QuietSection(settings) }
         item(key = "pause") { PauseSection(settings) }
@@ -242,6 +247,39 @@ private fun Label(text: String) {
         color = Halaa.colors.ink,
         modifier = Modifier.padding(top = 10.dp, bottom = 8.dp),
     )
+}
+
+// ------------------------------------------------------------------ catching from notifications
+
+@Composable
+private fun CatchSection(granted: Boolean) {
+    val colors = Halaa.colors
+    val context = LocalContext.current
+    SettingsCard(stringResource(R.string.catch_title), Icons.Rounded.MarkChatUnread, colors.route(1)) {
+        Text(stringResource(R.string.catch_desc), style = MaterialTheme.typography.bodySmall, color = colors.inkSoft)
+        Spacer(Modifier.height(12.dp))
+        if (granted) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Pill(stringResource(R.string.catch_on), colors.success, colors.successSoft, icon = Icons.Rounded.Check)
+                Spacer(Modifier.weight(1f))
+                InlineAction(
+                    stringResource(R.string.catch_manage),
+                    Icons.Rounded.Tune,
+                    { Permissions.openNotificationAccess(context) },
+                    color = colors.inkSoft,
+                )
+            }
+        } else {
+            Text(stringResource(R.string.catch_off), style = MaterialTheme.typography.labelLarge, color = colors.warning)
+            Spacer(Modifier.height(10.dp))
+            InlineAction(
+                stringResource(R.string.catch_enable),
+                Icons.Rounded.LockOpen,
+                { Permissions.openNotificationAccess(context) },
+                color = colors.route(1),
+            )
+        }
+    }
 }
 
 // ------------------------------------------------------------------ Shabbat & holidays

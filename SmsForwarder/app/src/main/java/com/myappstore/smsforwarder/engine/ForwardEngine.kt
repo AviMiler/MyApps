@@ -4,14 +4,17 @@ import android.content.Context
 import android.telephony.SmsManager
 import com.myappstore.smsforwarder.R
 import com.myappstore.smsforwarder.contacts.ContactsRepository
+import com.myappstore.smsforwarder.core.CaptureLog
 import com.myappstore.smsforwarder.core.ContentFilter
 import com.myappstore.smsforwarder.core.ContentVerdict
 import com.myappstore.smsforwarder.core.HoldCause
 import com.myappstore.smsforwarder.core.HoldDecision
 import com.myappstore.smsforwarder.core.HoldPolicy
 import com.myappstore.smsforwarder.core.MessageTemplate
+import com.myappstore.smsforwarder.core.Origin
 import com.myappstore.smsforwarder.core.Otp
 import com.myappstore.smsforwarder.core.Phones
+import com.myappstore.smsforwarder.core.SeenKeys
 import com.myappstore.smsforwarder.core.SenderMatch
 import com.myappstore.smsforwarder.core.TimeWindow
 import com.myappstore.smsforwarder.data.AppDatabase
@@ -19,12 +22,15 @@ import com.myappstore.smsforwarder.data.AppSettings
 import com.myappstore.smsforwarder.data.EventKind
 import com.myappstore.smsforwarder.data.EventStatus
 import com.myappstore.smsforwarder.data.ForwardEvent
+import com.myappstore.smsforwarder.data.Party
 import com.myappstore.smsforwarder.data.Reason
 import com.myappstore.smsforwarder.data.Route
 import com.myappstore.smsforwarder.data.SettingsStore
 import com.myappstore.smsforwarder.sms.IncomingSms
+import com.myappstore.smsforwarder.sms.NotifiedMessage
 import com.myappstore.smsforwarder.sms.Sims
 import com.myappstore.smsforwarder.sms.SmsSender
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.time.Instant
@@ -47,18 +53,58 @@ class ForwardEngine(
     private val contacts: ContactsRepository,
     private val notifier: Notifier,
     private val scheduler: Scheduler,
+    /** How long a notification waits for its SMS to show up before it is handled on its own. */
+    private val notificationGraceMs: Long = NOTIFICATION_GRACE_MS,
 ) {
 
     private val mutex = Mutex()
     private val events get() = db.events()
     private val zone: ZoneId get() = ZoneId.systemDefault()
     private val holidays: (LocalDate) -> Boolean = IsraeliHolidays::isYomTov
+    private val captures = CaptureLog()
+    private val seenPrefs = context.getSharedPreferences("halaa_seen", Context.MODE_PRIVATE)
+    private val seenKeys: SeenKeys by lazy { SeenKeys.parse(seenPrefs.getString(KEY_SEEN, null).orEmpty()) }
 
     // ---------------------------------------------------------------- incoming
 
     suspend fun onIncoming(sms: IncomingSms) {
-        mutex.withLock { process(sms) }
+        mutex.withLock {
+            val name = sms.senderName ?: contacts.lookup(sms.sender)?.name
+            // One message can reach the app twice: as an SMS and through the messaging app's notification.
+            if (captures.claim(sms.origin, sms.sender, name, sms.body, sms.receivedAt)) process(sms)
+        }
         maintenance()
+    }
+
+    /**
+     * New messages read from a messaging app's notification. Each waits briefly for its SMS; if the
+     * SMS never reached the app (or it is a chat message), it is forwarded from the notification.
+     */
+    suspend fun onNotifiedMessages(app: String, messages: List<NotifiedMessage>, postedAt: Long) {
+        val now = System.currentTimeMillis()
+        fun arrival(message: NotifiedMessage) = if (message.time > 0) message.time else postedAt
+        val fresh = messages.filter { message ->
+            // Notifications repeat a conversation's earlier messages; only new, recent ones count.
+            seenKeys.firstSighting(SeenKeys.keyOf(app, message.senderName, arrival(message), message.text), now) &&
+                arrival(message) >= now - NOTIFICATION_HISTORY_MS
+        }
+        seenPrefs.edit().putString(KEY_SEEN, seenKeys.serialize()).apply()
+        if (fresh.isEmpty()) return
+        delay(notificationGraceMs)
+        for (message in fresh) {
+            val sender = contacts.resolveNotificationSender(message.senderName, message.senderUri)
+            onIncoming(
+                IncomingSms(
+                    sender = sender.address,
+                    body = message.text,
+                    receivedAt = arrival(message),
+                    subId = -1,
+                    senderName = sender.name,
+                    fromContact = sender.isContact,
+                    origin = Origin.NOTIFICATION,
+                ),
+            )
+        }
     }
 
     private suspend fun process(sms: IncomingSms) {
@@ -83,11 +129,15 @@ class ForwardEngine(
                 sources = route.sources.map { it.address },
                 exclusions = route.exclusions.map { it.address },
                 sender = sms.sender,
-                senderIsContact = contact != null,
+                senderIsContact = contact != null || sms.fromContact,
+                senderName = sms.senderName,
+                sourceNames = route.sources.map { it.name },
+                exclusionNames = route.exclusions.map { it.name },
             )
             if (!matches) continue
 
             val senderName = contact?.name
+                ?: sms.senderName
                 ?: route.sources.firstOrNull { Phones.same(it.address, sms.sender) }?.name
             val routeName = routeName(route)
             val text = render(route, routeName, sms.sender, senderName, sms.body, code, now, sms.subId)
@@ -112,10 +162,11 @@ class ForwardEngine(
                     scheduledAt = now,
                     sendSubId = route.sendSubId,
                     receiveSubId = sms.subId,
+                    origin = sms.origin,
                 )
                 val skip = when {
                     routeSkip != Reason.NONE -> routeSkip
-                    Phones.same(destination.address, sms.sender) -> Reason.SELF_LOOP
+                    isFrom(destination, sms) -> Reason.SELF_LOOP
                     hold is HoldDecision.Drop -> reasonFor(hold.cause)
                     s.loopGuard && isDuplicate(sms, destination.address, now) -> Reason.DUPLICATE
                     else -> Reason.NONE
@@ -158,6 +209,10 @@ class ForwardEngine(
         if (scheduled) rearm()
     }
 
+    /** Whether [party] sent [sms] - by number, or by name when the message came from a notification. */
+    private fun isFrom(party: Party, sms: IncomingSms): Boolean =
+        Phones.same(party.address, sms.sender) || CaptureLog.sameName(party.name, sms.senderName)
+
     private fun skipReason(route: Route, sms: IncomingSms, code: String?, localNow: LocalDateTime, s: AppSettings): Int {
         if (!s.masterEnabled) return Reason.APP_OFF
         if (route.receiveSubId >= 0 && sms.subId >= 0 && route.receiveSubId != sms.subId) return Reason.WRONG_SIM
@@ -189,18 +244,16 @@ class ForwardEngine(
         val prefix = s.replyPrefix.trim().ifEmpty { DEFAULT_REPLY_PREFIX }
         val body = sms.body.trimStart()
         if (!body.startsWith(prefix)) return false
-        val relayRoutes = routes.filter { route ->
-            route.replyRelay && route.destinations.any { Phones.same(it.address, sms.sender) }
-        }
+        val relayRoutes = routes.filter { route -> route.replyRelay && route.destinations.any { isFrom(it, sms) } }
         if (relayRoutes.isEmpty()) return false
         val reply = body.removePrefix(prefix).trim()
         if (reply.isEmpty()) return false
 
         val routeIds = relayRoutes.map { it.id }.toSet()
         val original = events.recentForwards(now - REPLY_WINDOW_MS)
-            .firstOrNull { it.routeId in routeIds && Phones.same(it.recipient, sms.sender) }
+            .firstOrNull { it.routeId in routeIds && (Phones.same(it.recipient, sms.sender) || CaptureLog.sameName(it.recipientName, sms.senderName)) }
         val route = relayRoutes.firstOrNull { it.id == original?.routeId } ?: relayRoutes.first()
-        val replier = route.destinations.firstOrNull { Phones.same(it.address, sms.sender) }
+        val replier = route.destinations.firstOrNull { isFrom(it, sms) }
         val base = ForwardEvent(
             kind = EventKind.REPLY,
             routeId = route.id,
@@ -216,6 +269,7 @@ class ForwardEngine(
             scheduledAt = now,
             sendSubId = original?.receiveSubId?.takeIf { it >= 0 } ?: route.sendSubId,
             receiveSubId = sms.subId,
+            origin = sms.origin,
         )
         if (original == null || !Phones.isPhoneLike(original.sender)) {
             record(base.copy(status = EventStatus.SKIPPED, reason = Reason.NO_REPLY_TARGET))
@@ -594,6 +648,9 @@ class ForwardEngine(
 
     companion object {
         const val TEST_SENDER = "Halaa"
+        const val NOTIFICATION_GRACE_MS = 8_000L
+        private const val NOTIFICATION_HISTORY_MS = 30 * 60_000L
+        private const val KEY_SEEN = "notification_keys"
         const val DEFAULT_REPLY_PREFIX = "#"
         private const val MAX_ATTEMPTS = 3
         private val RETRY_DELAYS_MS = longArrayOf(60_000L, 5 * 60_000L, 20 * 60_000L)

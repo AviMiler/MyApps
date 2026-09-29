@@ -1,5 +1,6 @@
 package com.myappstore.smsforwarder.contacts
 
+import android.content.ContentUris
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -37,6 +38,9 @@ data class RecentSender(
     fun party() = Party(address, name, 0L, photoUri)
 }
 
+/** Who sent a message seen in a notification, as far as the phone can tell. */
+data class NotificationSender(val address: String, val name: String?, val isContact: Boolean)
+
 class ContactsRepository(private val context: Context) {
 
     private val lookupCache = LruCache<String, Party>(200)
@@ -72,6 +76,62 @@ class ContactsRepository(private val context: Context) {
         }
         if (found != null) lookupCache.put(key, found) else missing.put(key, true)
         return found
+    }
+
+    /**
+     * Turns a notification's sender into an address: the number behind a tel: or contact link, a
+     * number shown as the name, or the number of the contact with that exact name. Otherwise the name
+     * itself is the address - business sender ids such as "Leumi" arrive that way.
+     */
+    fun resolveNotificationSender(name: String, personUri: String?): NotificationSender {
+        val uri = personUri?.trim().orEmpty()
+        val shownAsNumber = Phones.isPhoneLike(name)
+        val fromLink = when {
+            uri.startsWith("tel:", ignoreCase = true) -> Uri.decode(uri.substring(4))
+            uri.startsWith("content://") -> numberOfContact(uri)
+            else -> null
+        }
+        val byName = if (fromLink == null && !shownAsNumber) numberForName(name) else null
+        val number = fromLink ?: byName ?: name.takeIf { shownAsNumber }
+        if (number.isNullOrBlank() || !Phones.isPhoneLike(number)) {
+            // Sender ids of businesses are Latin only, so a Hebrew name is someone saved in the contacts.
+            return NotificationSender(name, name, isContact = name.any { it in '\u05D0'..'\u05EA' })
+        }
+        val contact = lookup(number)
+        return NotificationSender(
+            address = number,
+            name = if (shownAsNumber) contact?.name else name,
+            isContact = contact != null || byName != null || uri.startsWith("content://"),
+        )
+    }
+
+    private fun numberOfContact(uri: String): String? {
+        if (!Permissions.canReadContacts(context)) return null
+        return try {
+            val parsed = Uri.parse(uri)
+            val contactUri = ContactsContract.Contacts.lookupContact(context.contentResolver, parsed) ?: parsed
+            firstNumber("${ContactsContract.CommonDataKinds.Phone.CONTACT_ID} = ?", ContentUris.parseId(contactUri).toString())
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private fun numberForName(name: String): String? {
+        if (!Permissions.canReadContacts(context)) return null
+        return firstNumber("${ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME_PRIMARY} = ?", name)
+    }
+
+    /** The contact's main number: the one marked default, else the first. */
+    private fun firstNumber(selection: String, arg: String): String? = try {
+        context.contentResolver.query(
+            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+            arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER),
+            selection,
+            arrayOf(arg),
+            "${ContactsContract.CommonDataKinds.Phone.IS_SUPER_PRIMARY} DESC, ${ContactsContract.CommonDataKinds.Phone.IS_PRIMARY} DESC",
+        )?.use { cursor -> if (cursor.moveToFirst()) cursor.getString(0)?.trim() else null }
+    } catch (e: Exception) {
+        null
     }
 
     fun invalidate() {

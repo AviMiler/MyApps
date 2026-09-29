@@ -36,6 +36,11 @@ jobs:
         working-directory: ${{ matrix.app.dir }}
         run: chmod +x gradlew
 
+      - name: Unit tests
+        if: matrix.app.dir == 'SmsForwarder'
+        working-directory: ${{ matrix.app.dir }}
+        run: ./gradlew testDebugUnitTest --no-daemon
+
       - name: Build debug APK
         working-directory: ${{ matrix.app.dir }}
         run: ./gradlew assembleDebug --no-daemon

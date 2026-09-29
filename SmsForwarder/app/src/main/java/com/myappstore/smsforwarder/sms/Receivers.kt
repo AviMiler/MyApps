@@ -8,6 +8,7 @@ import android.provider.Telephony
 import android.telephony.SmsMessage
 import android.util.Log
 import com.myappstore.smsforwarder.Graph
+import com.myappstore.smsforwarder.core.Origin
 import kotlinx.coroutines.launch
 
 /** An incoming text message, with multi-part messages already joined. */
@@ -16,6 +17,11 @@ data class IncomingSms(
     val body: String,
     val receivedAt: Long,
     val subId: Int,
+    /** The name shown in the messaging app's notification, which may not reveal the number. */
+    val senderName: String? = null,
+    /** Whether the notification's sender was found in the contacts. */
+    val fromContact: Boolean = false,
+    val origin: Int = Origin.SMS,
 )
 
 /** Runs [block] off the main thread while keeping the broadcast alive until it finishes. */
