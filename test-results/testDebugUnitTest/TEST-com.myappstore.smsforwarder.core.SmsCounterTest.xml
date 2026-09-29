@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.myappstore.smsforwarder.core.SmsCounterTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-29T20:31:33" hostname="runnervmtr4k5" time="0.005">
+  <properties/>
+  <testcase name="emptyText" classname="com.myappstore.smsforwarder.core.SmsCounterTest" time="0.001"/>
+  <testcase name="extendedCharactersCountDouble" classname="com.myappstore.smsforwarder.core.SmsCounterTest" time="0.0"/>
+  <testcase name="hebrewIsUnicode" classname="com.myappstore.smsforwarder.core.SmsCounterTest" time="0.001"/>
+  <testcase name="gsmText" classname="com.myappstore.smsforwarder.core.SmsCounterTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

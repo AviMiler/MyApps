@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.myappstore.smsforwarder.core.HebrewTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-29T20:31:33" hostname="runnervmtr4k5" time="0.001">
+  <properties/>
+  <testcase name="digitsAndForeignLettersTakeAHyphen" classname="com.myappstore.smsforwarder.core.HebrewTest" time="0.001"/>
+  <testcase name="invisibleMarksAreSkipped" classname="com.myappstore.smsforwarder.core.HebrewTest" time="0.0"/>
+  <testcase name="arrowKeepsRightToLeftOrder" classname="com.myappstore.smsforwarder.core.HebrewTest" time="0.0"/>
+  <testcase name="hebrewWordsJoinDirectly" classname="com.myappstore.smsforwarder.core.HebrewTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

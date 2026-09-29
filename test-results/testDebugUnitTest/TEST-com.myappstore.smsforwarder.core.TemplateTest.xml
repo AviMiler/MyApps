@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.myappstore.smsforwarder.core.TemplateTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-09-29T20:31:33" hostname="runnervmtr4k5" time="0.005">
+  <properties/>
+  <testcase name="codeFirstWithAndWithoutCode" classname="com.myappstore.smsforwarder.core.TemplateTest" time="0.002"/>
+  <testcase name="placeholdersInsideTheMessageAreNotExpanded" classname="com.myappstore.smsforwarder.core.TemplateTest" time="0.0"/>
+  <testcase name="digestJoinsMessages" classname="com.myappstore.smsforwarder.core.TemplateTest" time="0.0"/>
+  <testcase name="defaultTemplate" classname="com.myappstore.smsforwarder.core.TemplateTest" time="0.0"/>
+  <testcase name="unknownSenderFallsBackToPrettyNumber" classname="com.myappstore.smsforwarder.core.TemplateTest" time="0.0"/>
+  <testcase name="allPlaceholders" classname="com.myappstore.smsforwarder.core.TemplateTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

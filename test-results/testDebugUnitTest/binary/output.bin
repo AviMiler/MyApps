@@ -1,0 +1,28 @@
+0.0s start
+1.5s seeded
+1.6s 01-home: start
+5.1s 01-home: saved 824x1830
+5.1s 02-home-dark: start
+"6.1s 02-home-dark: saved 824x1830
+6.1s 03-log: start
+7.0s 03-log: saved 824x1830
+7.0s 04-log-dark: start
+!7.9s 04-log-dark: saved 824x1830
+7.9s 05-settings: start
+!9.2s 05-settings: saved 824x6600
+9.2s 06-editor: start
+ 10.6s 06-editor: saved 824x6000
+10.6s 07-editor-dark: start
+%11.6s 07-editor-dark: saved 824x3000
+11.6s 08-picker: start
+ 12.4s 08-picker: saved 824x1830
+12.4s 09-onboarding: start
+$13.2s 09-onboarding: saved 824x1830
+13.2s 10-health: start
+ 14.1s 10-health: saved 824x3400
+14.1s 11-home-paused: start
+%15.1s 11-home-paused: saved 824x1830
+ 15.1s 12-home-quiet-dark: start
+)16.0s 12-home-quiet-dark: saved 824x1830
+16.0s 13-home-off: start
+"16.8s 13-home-off: saved 824x1830

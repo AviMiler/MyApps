@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.myappstore.smsforwarder.core.ScheduleTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-09-29T20:31:33" hostname="runnervmtr4k5" time="0.016">
+  <properties/>
+  <testcase name="daytimeWindow" classname="com.myappstore.smsforwarder.core.ScheduleTest" time="0.001"/>
+  <testcase name="overnightWindowBelongsToTheStartDay" classname="com.myappstore.smsforwarder.core.ScheduleTest" time="0.0"/>
+  <testcase name="shabbatWindowRunsFromCandleLightingToNightfall" classname="com.myappstore.smsforwarder.core.ScheduleTest" time="0.001"/>
+  <testcase name="sunsetMatchesReferenceTimes" classname="com.myappstore.smsforwarder.core.ScheduleTest" time="0.007"/>
+  <testcase name="holidayNextToShabbatMergesIntoOneWindow" classname="com.myappstore.smsforwarder.core.ScheduleTest" time="0.002"/>
+  <testcase name="nextWindowIsFoundAhead" classname="com.myappstore.smsforwarder.core.ScheduleTest" time="0.001"/>
+  <testcase name="dayMask" classname="com.myappstore.smsforwarder.core.ScheduleTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
