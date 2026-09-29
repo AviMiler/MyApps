@@ -39,6 +39,14 @@ object Texts {
             context.getString(R.string.error_with_detail, detail)
         }
         return when (code) {
+            SmsManager.RESULT_ERROR_GENERIC_FAILURE -> context.getString(R.string.error_generic_failure)
+            SmsManager.RESULT_NO_DEFAULT_SMS_APP -> context.getString(R.string.error_no_sim_chosen)
+            SmsManager.RESULT_USER_NOT_ALLOWED -> context.getString(R.string.error_user_not_allowed)
+            SmsManager.RESULT_NETWORK_REJECT,
+            SmsManager.RESULT_NETWORK_ERROR,
+            -> context.getString(R.string.error_network_reject)
+            SmsManager.RESULT_INVALID_ARGUMENTS -> context.getString(R.string.error_bad_number)
+            SmsManager.RESULT_INVALID_SMSC_ADDRESS -> context.getString(R.string.error_smsc)
             SmsManager.RESULT_ERROR_RADIO_OFF -> context.getString(R.string.error_radio_off)
             SmsManager.RESULT_ERROR_NO_SERVICE -> context.getString(R.string.error_no_service)
             SmsManager.RESULT_RADIO_NOT_AVAILABLE -> context.getString(R.string.error_no_service)

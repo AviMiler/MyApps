@@ -52,6 +52,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -84,8 +85,11 @@ import com.myappstore.smsforwarder.core.Otp
 import com.myappstore.smsforwarder.core.SmsCounter
 import com.myappstore.smsforwarder.core.SourceMode
 import com.myappstore.smsforwarder.data.AppSettings
+import com.myappstore.smsforwarder.data.EventStatus
+import com.myappstore.smsforwarder.data.ForwardEvent
 import com.myappstore.smsforwarder.data.Party
 import com.myappstore.smsforwarder.data.Route
+import com.myappstore.smsforwarder.engine.Texts
 import com.myappstore.smsforwarder.sms.SimCard
 import com.myappstore.smsforwarder.sms.Sims
 import com.myappstore.smsforwarder.ui.Fmt
@@ -112,6 +116,8 @@ import com.myappstore.smsforwarder.ui.components.contentOn
 import com.myappstore.smsforwarder.ui.components.fieldColors
 import com.myappstore.smsforwarder.ui.components.pluralText
 import com.myappstore.smsforwarder.ui.theme.Halaa
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 @Composable
@@ -824,7 +830,19 @@ private fun TestDialog(route: Route, onDismiss: () -> Unit) {
     val defaultBody = stringResource(if (route.codesOnly) R.string.sample_code_message else R.string.sample_message)
     var body by remember { mutableStateOf(defaultBody) }
     var sending by remember { mutableStateOf(false) }
-    var sentCount by remember { mutableStateOf<Int?>(null) }
+    // Log ids of the real test messages; their rows update as the network reports back.
+    var testIds by remember { mutableStateOf<List<Long>>(emptyList()) }
+    val results by remember(testIds) {
+        if (testIds.isEmpty()) flowOf(emptyList()) else Graph.db.events().observeByIds(testIds)
+    }.collectAsState(initial = emptyList())
+    var waitedLong by remember { mutableStateOf(false) }
+    LaunchedEffect(testIds) {
+        waitedLong = false
+        if (testIds.isNotEmpty()) {
+            delay(20_000)
+            waitedLong = true
+        }
+    }
     val code = Otp.detect(body)
     val verdict = ContentFilter.check(body, route.includeWords, route.excludeWords, route.codesOnly, code)
     val sender = route.sources.firstOrNull()
@@ -843,7 +861,7 @@ private fun TestDialog(route: Route, onDismiss: () -> Unit) {
                     value = body,
                     onValueChange = {
                         body = it
-                        sentCount = null
+                        testIds = emptyList()
                     },
                     label = { Text(stringResource(R.string.test_sample)) },
                     minLines = 2,
@@ -873,14 +891,17 @@ private fun TestDialog(route: Route, onDismiss: () -> Unit) {
                 }
                 Spacer(Modifier.height(12.dp))
                 SmsPreview(text = preview, fromLabel = stringResource(R.string.preview_from_you))
-                val sent = sentCount
-                if (sent != null) {
-                    Spacer(Modifier.height(10.dp))
-                    Text(
-                        pluralText(R.plurals.test_sent, sent, sent),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = colors.success,
-                    )
+                if (results.isNotEmpty()) {
+                    Spacer(Modifier.height(12.dp))
+                    results.forEach { TestResultRow(it) }
+                    if (waitedLong && results.any { it.status == EventStatus.SENDING }) {
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            stringResource(R.string.test_slow_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.inkSoft,
+                        )
+                    }
                 }
             }
         },
@@ -890,7 +911,7 @@ private fun TestDialog(route: Route, onDismiss: () -> Unit) {
                 onClick = {
                     sending = true
                     scope.launch {
-                        sentCount = Graph.engine.sendTest(route, body)
+                        testIds = Graph.engine.sendTest(route, body)
                         sending = false
                     }
                 },
@@ -900,4 +921,31 @@ private fun TestDialog(route: Route, onDismiss: () -> Unit) {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.close), color = colors.inkSoft) }
         },
     )
+}
+
+/** One recipient of a real test: sending, sent, delivered, or why it failed. */
+@Composable
+private fun TestResultRow(event: ForwardEvent) {
+    val colors = Halaa.colors
+    val context = LocalContext.current
+    val (text, color) = when (event.status) {
+        EventStatus.SENDING -> stringResource(R.string.test_status_sending) to colors.inkSoft
+        EventStatus.SENT -> stringResource(R.string.test_status_sent) to colors.success
+        EventStatus.DELIVERED -> stringResource(R.string.test_status_delivered) to colors.success
+        EventStatus.FAILED -> stringResource(
+            R.string.test_status_failed,
+            Texts.reason(context, event.reason, event.detail),
+        ) to colors.danger
+        else -> Texts.reason(context, event.reason, event.detail) to colors.warning
+    }
+    Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            event.recipientLabel,
+            style = MaterialTheme.typography.labelLarge,
+            color = colors.ink,
+            modifier = Modifier.weight(1f),
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(text, style = MaterialTheme.typography.labelLarge, color = color)
+    }
 }

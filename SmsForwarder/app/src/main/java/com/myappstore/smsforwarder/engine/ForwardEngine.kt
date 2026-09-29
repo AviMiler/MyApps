@@ -246,16 +246,17 @@ class ForwardEngine(
 
     // ---------------------------------------------------------------- sending
 
-    private suspend fun sendFresh(event: ForwardEvent, s: AppSettings) {
+    /** Records [event] and hands it to the radio; returns its log id. */
+    private suspend fun sendFresh(event: ForwardEvent, s: AppSettings): Long {
         if (overDailyLimit(s)) {
-            record(event.copy(status = EventStatus.BLOCKED, reason = Reason.DAILY_LIMIT))
             notifyDailyLimit(s)
-            return
+            return record(event.copy(status = EventStatus.BLOCKED, reason = Reason.DAILY_LIMIT))
         }
         val now = System.currentTimeMillis()
         val sending = event.copy(status = EventStatus.SENDING, attempts = 1, sentAt = now)
         val id = record(sending)
         transmit(listOf(sending.copy(id = id)), sending.outgoing, s)
+        return id
     }
 
     /** Sends waiting events now; several held messages to the same person become one digest. */
@@ -475,16 +476,15 @@ class ForwardEngine(
         }
     }
 
-    /** Sends [sampleBody] through [route] to its recipients, marked as a test. Returns how many were sent. */
-    suspend fun sendTest(route: Route, sampleBody: String): Int = mutex.withLock {
+    /** Sends [sampleBody] through [route] to its recipients, marked as a test. Returns the log ids to follow. */
+    suspend fun sendTest(route: Route, sampleBody: String): List<Long> = mutex.withLock {
         val s = settings.value
         val now = System.currentTimeMillis()
         val routeName = routeName(route)
         val senderName = context.getString(R.string.test_sender_name)
         val code = Otp.detect(sampleBody)
         val text = render(route, routeName, TEST_SENDER, senderName, sampleBody, code, now, -1)
-        val recipients = route.destinations.distinctBy { Phones.key(it.address) }
-        for (destination in recipients) {
+        route.destinations.distinctBy { Phones.key(it.address) }.map { destination ->
             sendFresh(
                 ForwardEvent(
                     kind = EventKind.TEST,
@@ -505,7 +505,6 @@ class ForwardEngine(
                 s,
             )
         }
-        recipients.size
     }
 
     /** Renders [route]'s template for a sample message, for the editor preview. */

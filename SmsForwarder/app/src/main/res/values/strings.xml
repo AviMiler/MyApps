@@ -79,6 +79,12 @@
     <string name="error_short_code">שליחה למספר מקוצר אינה מורשית</string>
     <string name="error_fdn">חסום ע״י רשימת חיוג קבועה (FDN)</string>
     <string name="error_code">שגיאת רשת (קוד %1$d)</string>
+    <string name="error_generic_failure">הטלפון דחה את השליחה (קוד 1)</string>
+    <string name="error_no_sim_chosen">לא נבחר כרטיס SIM לשליחת SMS</string>
+    <string name="error_user_not_allowed">שליחת SMS חסומה בפרופיל הזה בטלפון</string>
+    <string name="error_network_reject">הרשת דחתה את ההודעה</string>
+    <string name="error_bad_number">מספר הנמען לא תקין</string>
+    <string name="error_smsc">מספר מרכז ההודעות (SMSC) בכרטיס ה-SIM שגוי</string>
 
     <!-- ============ UI ============ -->
     <!-- common -->
@@ -273,6 +279,11 @@
     <string name="test_pass">ההודעה הזאת תועבר ✓</string>
     <string name="test_blocked_hint">ההודעה הזאת לא הייתה עוברת. כך היא הייתה נראית אילו עברה:</string>
     <string name="test_send_real">שליחת בדיקה אמיתית</string>
+    <string name="test_status_sending">שולח…</string>
+    <string name="test_status_sent">נשלח ✓</string>
+    <string name="test_status_delivered">נמסר ✓✓</string>
+    <string name="test_status_failed">נכשל: %1$s</string>
+    <string name="test_slow_hint">הרשת עוד לא אישרה את השליחה. אם זה נמשך, ייתכן שהטלפון חוסם שליחת SMS מאפליקציות. למשל ב-Xiaomi: הגדרות ← אפליקציות ← הלאה ← הרשאות ← „שליחת הודעות SMS״ ← לאפשר תמיד.</string>
 
     <!-- picker -->
     <string name="picker_title_sources">ממי להעביר?</string>
@@ -463,7 +474,7 @@
     <string name="tip_restricted_title">בקשת ההרשאה לא מופיעה?</string>
     <string name="tip_restricted">באנדרואיד 13 ומעלה, אפליקציות שהותקנו מקובץ עשויות להיחסם מהרשאות SMS. אם בקשת ההרשאה לא מופיעה: הגדרות ← אפליקציות ← הלאה ← ⋮ (למעלה) ← ״אפשר הגדרות מוגבלות״, ואז נסו שוב.</string>
     <string name="tip_vendor_title">טיפ ליצרן הטלפון שלכם</string>
-    <string name="tip_vendor_xiaomi">בטלפונים של Xiaomi/Redmi/Poco: הגדרות ← אפליקציות ← הלאה ← הפעלה אוטומטית, וחיסכון בסוללה ← ״ללא הגבלות״.</string>
+    <string name="tip_vendor_xiaomi">בטלפונים של Xiaomi/Redmi/Poco: הגדרות ← אפליקציות ← הלאה ← הפעלה אוטומטית, וחיסכון בסוללה ← ״ללא הגבלות״. בנוסף, במסך ההרשאות של האפליקציה ודאו ש״שליחת הודעות SMS״ מאושרת תמיד (ולא ״לשאול״).</string>
     <string name="tip_vendor_huawei">בטלפונים של Huawei/Honor: הגדרות ← סוללה ← הפעלת אפליקציות ← הלאה ← ניהול ידני, והפעילו את כל האפשרויות.</string>
     <string name="tip_vendor_samsung">בטלפונים של Samsung: הגדרות ← סוללה ← הגבלות שימוש ברקע, וודאו שהלאה לא נמצאת ברשימת ״אפליקציות במצב שינה״.</string>
     <string name="tip_vendor_oppo">בטלפונים של Oppo/Realme/OnePlus/Vivo: אפשרו ״הפעלה אוטומטית״ והחריגו את הלאה מאופטימיזציית סוללה.</string>
@@ -582,12 +593,6 @@
         <item quantity="two">2 הודעות SMS לכל העברה · %2$d תווים</item>
         <item quantity="many">%1$d הודעות SMS לכל העברה · %2$d תווים</item>
         <item quantity="other">%1$d הודעות SMS לכל העברה · %2$d תווים</item>
-    </plurals>
-    <plurals name="test_sent">
-        <item quantity="one">נשלחה הודעת בדיקה אחת ✓</item>
-        <item quantity="two">נשלחו 2 הודעות בדיקה ✓</item>
-        <item quantity="many">נשלחו %1$d הודעות בדיקה ✓</item>
-        <item quantity="other">נשלחו %1$d הודעות בדיקה ✓</item>
     </plurals>
     <plurals name="waiting_count">
         <item quantity="one">הודעה אחת ממתינה</item>

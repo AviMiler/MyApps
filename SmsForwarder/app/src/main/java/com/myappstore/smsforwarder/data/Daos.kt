@@ -55,6 +55,9 @@ interface EventDao {
     @Query("SELECT * FROM events WHERE id IN (:ids)")
     suspend fun byIds(ids: List<Long>): List<ForwardEvent>
 
+    @Query("SELECT * FROM events WHERE id IN (:ids) ORDER BY id ASC")
+    fun observeByIds(ids: List<Long>): Flow<List<ForwardEvent>>
+
     @Query("SELECT * FROM events ORDER BY receivedAt DESC, id DESC LIMIT :limit")
     fun observeRecent(limit: Int): Flow<List<ForwardEvent>>
 

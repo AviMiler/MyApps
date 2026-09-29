@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.telephony.SmsManager
 import android.telephony.SubscriptionManager
+import android.telephony.TelephonyManager
 
 /** An active SIM card (subscription). */
 data class SimCard(
@@ -50,17 +51,42 @@ object Sims {
     }
 
     /**
-     * Picks the SIM to send from: the route's choice, then the app default, then the
-     * phone's default SMS SIM, then the first active SIM. -1 means "let the system decide".
+     * Picks the SIM to send from: the route's choice, the app default, the phone's default SMS SIM,
+     * then its default voice/data SIM, then the first SIM in the phone. A concrete SIM matters: on a
+     * dual-SIM phone set to "ask every time" there is no default SMS SIM, and a message sent in the
+     * background without one is rejected by the system. -1 means "let the system decide".
      */
     fun resolveForSending(context: Context, routeSubId: Int, defaultSubId: Int): Int {
-        val active = active(context)
-        fun usable(id: Int) = id >= 0 && (active.isEmpty() || active.any { it.subId == id })
-        if (usable(routeSubId)) return routeSubId
-        if (usable(defaultSubId)) return defaultSubId
-        val systemDefault = SubscriptionManager.getDefaultSmsSubscriptionId()
-        if (usable(systemDefault)) return systemDefault
-        return active.firstOrNull()?.subId ?: -1
+        val present = active(context).map { it.subId }.ifEmpty { slotSubscriptions(context) }
+        fun usable(id: Int) = id >= 0 && (present.isEmpty() || id in present)
+        return listOf(
+            routeSubId,
+            defaultSubId,
+            SubscriptionManager.getDefaultSmsSubscriptionId(),
+            SubscriptionManager.getDefaultSubscriptionId(),
+            SubscriptionManager.getDefaultDataSubscriptionId(),
+        ).firstOrNull { usable(it) } ?: present.firstOrNull() ?: -1
+    }
+
+    /** Subscription ids of the SIMs in the phone's slots. Needs no permission (Android 10+). */
+    private fun slotSubscriptions(context: Context): List<Int> {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return emptyList()
+        val telephony = context.getSystemService(TelephonyManager::class.java) ?: return emptyList()
+        val subscriptions = context.getSystemService(SubscriptionManager::class.java) ?: return emptyList()
+        @Suppress("DEPRECATION")
+        val slots = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) telephony.activeModemCount else telephony.phoneCount
+        return (0 until slots).mapNotNull { slot ->
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    SubscriptionManager.getSubscriptionId(slot).takeIf { SubscriptionManager.isValidSubscriptionId(it) }
+                } else {
+                    @Suppress("DEPRECATION")
+                    subscriptions.getSubscriptionIds(slot)?.firstOrNull { SubscriptionManager.isValidSubscriptionId(it) }
+                }
+            } catch (e: Exception) {
+                null
+            }
+        }
     }
 
     fun smsManager(context: Context, subId: Int): SmsManager {
