@@ -62,6 +62,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -116,6 +117,7 @@ import com.myappstore.smsforwarder.ui.components.Pill
 import com.myappstore.smsforwarder.ui.components.PrimaryButton
 import com.myappstore.smsforwarder.ui.components.RouteDiagram
 import com.myappstore.smsforwarder.ui.components.RouteIllustration
+import com.myappstore.smsforwarder.ui.components.animationsEnabled
 import com.myappstore.smsforwarder.ui.components.SectionHeader
 import com.myappstore.smsforwarder.ui.components.pluralText
 import com.myappstore.smsforwarder.ui.components.rememberNow
@@ -390,10 +392,10 @@ private fun StatusHero(
             .clip(RoundedCornerShape(32.dp))
             .background(background),
     ) {
-        HeroBackdrop(mode, Modifier.matchParentSize())
+        HeroBackdrop(mode, animationsEnabled(), Modifier.matchParentSize())
         Column(Modifier.padding(22.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                StatusTag(tag, onHero, pulsing = mode == HeroMode.ACTIVE)
+                StatusTag(tag, onHero, pulsing = mode == HeroMode.ACTIVE && animationsEnabled())
                 Spacer(Modifier.weight(1f))
                 if (mode != HeroMode.SETUP) {
                     BigSwitch(
@@ -490,17 +492,21 @@ private fun HeroStat(value: Int, label: String, color: Color) {
 
 /** Decorative layer: transit lines while active, a night sky during Shabbat and quiet hours. */
 @Composable
-private fun HeroBackdrop(mode: HeroMode, modifier: Modifier) {
+private fun HeroBackdrop(mode: HeroMode, animate: Boolean, modifier: Modifier) {
     val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     when (mode) {
         HeroMode.ACTIVE -> {
-            val transition = rememberInfiniteTransition(label = "backdrop")
-            val progress by transition.animateFloat(
-                initialValue = 0f,
-                targetValue = 1f,
-                animationSpec = infiniteRepeatable(tween(5200)),
-                label = "backdropProgress",
-            )
+            // State objects are read inside the Canvas so only drawing repeats every frame.
+            val progress: State<Float>? = if (animate) {
+                rememberInfiniteTransition(label = "backdrop").animateFloat(
+                    initialValue = 0f,
+                    targetValue = 1f,
+                    animationSpec = infiniteRepeatable(tween(5200)),
+                    label = "backdropProgress",
+                )
+            } else {
+                null
+            }
             Canvas(modifier) {
                 val w = size.width
                 val h = size.height
@@ -515,23 +521,27 @@ private fun HeroBackdrop(mode: HeroMode, modifier: Modifier) {
                 }
                 drawPath(line, Color.White.copy(alpha = 0.14f), style = Stroke(width = 10.dp.toPx(), cap = StrokeCap.Round))
                 drawPath(second, Color.White.copy(alpha = 0.08f), style = Stroke(width = 6.dp.toPx(), cap = StrokeCap.Round))
+                val p = progress?.value ?: return@Canvas
                 val measure = androidx.compose.ui.graphics.PathMeasure()
                 measure.setPath(line, false)
                 for (i in 0 until 2) {
-                    val f = (progress + i * 0.5f) % 1f
+                    val f = (p + i * 0.5f) % 1f
                     val alpha = sin(f * Math.PI).toFloat() * 0.6f
                     drawCircle(Color.White.copy(alpha = alpha), radius = 4.dp.toPx(), center = measure.getPosition(measure.length * f))
                 }
             }
         }
         HeroMode.REST, HeroMode.QUIET -> {
-            val transition = rememberInfiniteTransition(label = "stars")
-            val twinkle by transition.animateFloat(
-                initialValue = 0f,
-                targetValue = 1f,
-                animationSpec = infiniteRepeatable(tween(2400), RepeatMode.Reverse),
-                label = "twinkle",
-            )
+            val twinkle: State<Float>? = if (animate) {
+                rememberInfiniteTransition(label = "stars").animateFloat(
+                    initialValue = 0f,
+                    targetValue = 1f,
+                    animationSpec = infiniteRepeatable(tween(2400), RepeatMode.Reverse),
+                    label = "twinkle",
+                )
+            } else {
+                null
+            }
             val stars = remember {
                 val random = Random(7)
                 List(22) { Triple(random.nextFloat(), random.nextFloat() * 0.75f, random.nextFloat()) }
@@ -539,8 +549,9 @@ private fun HeroBackdrop(mode: HeroMode, modifier: Modifier) {
             Canvas(modifier) {
                 val w = size.width
                 val h = size.height
+                val t = twinkle?.value ?: 0.5f
                 stars.forEach { (sx, sy, phase) ->
-                    val alpha = 0.25f + 0.55f * ((sin((twinkle + phase) * Math.PI * 2) + 1) / 2).toFloat()
+                    val alpha = 0.25f + 0.55f * ((sin((t + phase) * Math.PI * 2) + 1) / 2).toFloat()
                     drawCircle(Color.White.copy(alpha = alpha), radius = (1.2f + phase * 1.6f).dp.toPx(), center = Offset(w * sx, h * sy))
                 }
                 val moonCenter = Offset(if (rtl) w * 0.14f else w * 0.86f, h * 0.24f)

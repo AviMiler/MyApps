@@ -1,5 +1,6 @@
 package com.myappstore.smsforwarder.ui.components
 
+import android.provider.Settings
 import android.util.LruCache
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -38,6 +39,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,6 +58,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
@@ -75,6 +78,24 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.math.PI
 import kotlin.math.sin
+
+// ------------------------------------------------------------------ motion
+
+/**
+ * Decorative, never-ending animations (flowing dots, pulses, twinkling stars) are skipped
+ * when the user turned animations off in the system's accessibility settings.
+ */
+@Composable
+fun animationsEnabled(): Boolean {
+    val context = LocalContext.current
+    return remember {
+        try {
+            Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) > 0f
+        } catch (e: Exception) {
+            true
+        }
+    }
+}
 
 // ------------------------------------------------------------------ avatars
 
@@ -241,7 +262,7 @@ fun PartyChip(party: Party, onRemove: (() -> Unit)?, modifier: Modifier = Modifi
 @Composable
 fun FlowLine(color: Color, active: Boolean, modifier: Modifier = Modifier) {
     val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-    val progress: State<Float>? = if (active) {
+    val progress: State<Float>? = if (active && animationsEnabled()) {
         rememberInfiniteTransition(label = "flow").animateFloat(
             initialValue = 0f,
             targetValue = 1f,
@@ -402,6 +423,8 @@ fun SmsPreview(text: String, fromLabel: String, modifier: Modifier = Modifier) {
 fun RouteIllustration(modifier: Modifier = Modifier, animate: Boolean = true) {
     val colors = Halaa.colors
     val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    @Suppress("NAME_SHADOWING")
+    val animate = animate && animationsEnabled()
     val progress: State<Float>? = if (animate) {
         rememberInfiniteTransition(label = "illustration").animateFloat(
             initialValue = 0f,

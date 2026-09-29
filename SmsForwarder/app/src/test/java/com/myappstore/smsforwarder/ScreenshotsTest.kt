@@ -5,6 +5,7 @@ import android.content.ComponentName
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.os.Looper
+import android.provider.Settings
 import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -40,6 +41,7 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import org.robolectric.shadows.ShadowChoreographer
 import java.io.File
 import java.io.FileOutputStream
 import java.time.Duration
@@ -55,10 +57,22 @@ import java.time.LocalTime
 class ScreenshotsTest {
 
     private val out = File("build/screenshots").apply { mkdirs() }
+    private val progress = File(out, "progress.txt")
+    private val startedAt = System.currentTimeMillis()
+
+    private fun log(message: String) {
+        val line = "%.1fs %s".format((System.currentTimeMillis() - startedAt) / 1000.0, message)
+        println(line)
+        progress.appendText(line + "\n")
+    }
 
     @Test
     fun renderScreens() {
+        log("start")
         val app = RuntimeEnvironment.getApplication()
+        // Decorative infinite animations stay still, so every frame settles quickly.
+        Settings.Global.putFloat(app.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 0f)
+        ShadowChoreographer.setFrameDelay(Duration.ofMillis(16))
         shadowOf(app).grantPermissions(
             Manifest.permission.RECEIVE_SMS,
             Manifest.permission.SEND_SMS,
@@ -69,6 +83,7 @@ class ScreenshotsTest {
         shadowOf(app.packageManager).addActivityIfNotPresent(ComponentName(app, ComponentActivity::class.java))
         val now = System.currentTimeMillis()
         seed(now)
+        log("seeded")
         Graph.settings.update { it.copy(onboardingDone = true) }
 
         shot("01-home") { Main(Tab.ROUTES) }
@@ -107,26 +122,32 @@ class ScreenshotsTest {
     private fun Main(tab: Tab) = MainScaffold(tab, {}, {}, {}, {}, {})
 
     private fun shot(name: String, dark: Boolean = false, heightDp: Int = 915, content: @Composable () -> Unit) {
-        RuntimeEnvironment.setQualifiers("w412dp-h${heightDp}dp-xhdpi")
-        val controller = Robolectric.buildActivity(ComponentActivity::class.java)
-        controller.get().setTheme(R.style.Theme_Halaa)
-        controller.setup()
-        val activity = controller.get()
-        activity.setContent {
-            HalaaTheme(dark = dark) {
-                Box(Modifier.fillMaxSize().background(Halaa.colors.background)) { content() }
+        log("$name: start")
+        try {
+            RuntimeEnvironment.setQualifiers("w412dp-h${heightDp}dp-xhdpi")
+            val controller = Robolectric.buildActivity(ComponentActivity::class.java)
+            controller.get().setTheme(R.style.Theme_Halaa)
+            controller.setup()
+            val activity = controller.get()
+            activity.setContent {
+                HalaaTheme(dark = dark) {
+                    Box(Modifier.fillMaxSize().background(Halaa.colors.background)) { content() }
+                }
             }
+            // Let composition and Room queries (on background threads) settle.
+            repeat(5) {
+                Thread.sleep(120)
+                shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(200))
+            }
+            val root = activity.findViewById<View>(android.R.id.content)
+            val bitmap = Bitmap.createBitmap(root.width, root.height, Bitmap.Config.ARGB_8888)
+            root.draw(Canvas(bitmap))
+            FileOutputStream(File(out, "$name.png")).use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            controller.pause().stop().destroy()
+            log("$name: saved ${bitmap.width}x${bitmap.height}")
+        } catch (t: Throwable) {
+            log("$name: FAILED ${t.stackTraceToString()}")
         }
-        // Let composition, Room queries (on background threads) and animations settle.
-        repeat(6) {
-            Thread.sleep(150)
-            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(400))
-        }
-        val root = activity.findViewById<View>(android.R.id.content)
-        val bitmap = Bitmap.createBitmap(root.width, root.height, Bitmap.Config.ARGB_8888)
-        root.draw(Canvas(bitmap))
-        FileOutputStream(File(out, "$name.png")).use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
-        controller.pause().stop().destroy()
     }
 
     // ---------------------------------------------------------------- sample data
