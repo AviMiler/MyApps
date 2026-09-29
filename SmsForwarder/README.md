@@ -95,7 +95,12 @@ app/src/main/java/com/myappstore/smsforwarder/
 3. ה-APK יהיה תחת `app/build/outputs/apk/debug/app-debug.apk`.
 
 או דרך ה-workflow המשותף בריפו (`.github/workflows/build-apk.yml`), שבונה APK debug ומעלה אותו
-כ-artifact בשם `SmsForwarder-debug-apk`.
+כ-artifact בשם `SmsForwarder-debug-apk`. הרצה ידנית שלו (Actions ← Build APKs ← Run workflow)
+גם מפרסמת את הקובץ ב-release בשם `smsforwarder-latest`, עם קישור ישיר להתקנה מהטלפון:
+https://github.com/AviMiler/MyApps/releases/download/smsforwarder-latest/Halaa.apk
+
+כל בנייה ב-CI חתומה במפתח debug חדש, ולכן כדי להתקין גרסה חדשה יותר צריך קודם להסיר את הקודמת
+(כדאי לייצא גיבוי מההגדרות לפני כן ולשחזר אחרי ההתקנה).
 
 בדיקות: `./gradlew testDebugUnitTest` מריץ את בדיקות הלוגיקה (התאמת מספרים, זיהוי קודים, תבניות,
 זמני שקיעה, לוח שבת וחג, מדיניות ההמתנה, ניסוח בעברית), בדיקות של מנוע ההעברה מול מסד נתונים
