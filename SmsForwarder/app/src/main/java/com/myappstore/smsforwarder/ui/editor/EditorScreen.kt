@@ -12,7 +12,6 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +26,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -63,16 +63,22 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.myappstore.smsforwarder.Graph
 import com.myappstore.smsforwarder.R
 import com.myappstore.smsforwarder.core.ContentFilter
 import com.myappstore.smsforwarder.core.ContentVerdict
+import com.myappstore.smsforwarder.core.Hebrew
 import com.myappstore.smsforwarder.core.MessageTemplate
 import com.myappstore.smsforwarder.core.Otp
 import com.myappstore.smsforwarder.core.SmsCounter
@@ -83,6 +89,7 @@ import com.myappstore.smsforwarder.data.Route
 import com.myappstore.smsforwarder.sms.SimCard
 import com.myappstore.smsforwarder.sms.Sims
 import com.myappstore.smsforwarder.ui.Fmt
+import com.myappstore.smsforwarder.ui.components.CardShape
 import com.myappstore.smsforwarder.ui.components.ChoiceChips
 import com.myappstore.smsforwarder.ui.components.ConfirmDialog
 import com.myappstore.smsforwarder.ui.components.DaysPicker
@@ -281,24 +288,53 @@ private fun EditorContent(editor: EditorState, onClose: () -> Unit) {
 @Composable
 private fun EditorHeader(editor: EditorState, routeColor: Color) {
     val context = LocalContext.current
+    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val route = editor.toRoute()
     val name = route.displayName(
         stringResource(R.string.source_unknown_short),
         stringResource(R.string.source_everyone_short),
     ).ifBlank { stringResource(R.string.editor_unnamed) }
-    HalaaCard(
-        Modifier.fillMaxWidth(),
-        color = routeColor.copy(alpha = if (Halaa.colors.isDark) 0.14f else 0.08f),
-        borderColor = routeColor.copy(alpha = 0.35f),
+    // A dark "line sign" in both themes, lit by the route's color like a metro line's signage.
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clip(CardShape)
+            .background(Halaa.colors.navBar)
+            .drawBehind {
+                val corner = Offset(if (rtl) size.width else 0f, 0f)
+                val glow = size.width * 0.75f
+                drawCircle(
+                    Brush.radialGradient(listOf(routeColor.copy(alpha = 0.42f), Color.Transparent), corner, glow),
+                    radius = glow,
+                    center = corner,
+                )
+                drawRect(routeColor, size = Size(size.width, 6.dp.toPx()))
+            }
+            .padding(start = 18.dp, end = 18.dp, top = 22.dp, bottom = 18.dp),
     ) {
-        Text(name, style = MaterialTheme.typography.headlineSmall, color = Halaa.colors.ink, maxLines = 2)
-        Spacer(Modifier.height(14.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier
+                    .size(12.dp)
+                    .clip(CircleShape)
+                    .background(routeColor),
+            )
+            Spacer(Modifier.width(10.dp))
+            Text(
+                name,
+                style = MaterialTheme.typography.headlineSmall,
+                color = Color.White,
+                maxLines = 2,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        Spacer(Modifier.height(16.dp))
         RouteDiagram(route, routeColor, active = editor.canSave && editor.enabled)
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(14.dp))
         Text(
             routeSentence(context, editor),
             style = MaterialTheme.typography.bodyMedium,
-            color = Halaa.colors.inkSoft,
+            color = Color.White.copy(alpha = 0.78f),
         )
     }
 }
@@ -307,19 +343,25 @@ private fun EditorHeader(editor: EditorState, routeColor: Color) {
 private fun routeSentence(context: Context, editor: EditorState): String {
     fun names(list: List<Party>): String {
         val labels = list.map { it.label }
-        return when {
-            labels.size <= 2 -> labels.joinToString(context.getString(R.string.and_join))
-            else -> context.getString(R.string.names_and_more, labels.take(2).joinToString(", "), labels.size - 2)
+        return when (labels.size) {
+            1 -> labels[0]
+            2 -> labels[0] + context.getString(R.string.and_join) + Hebrew.afterPrefix(labels[1])
+            else -> context.resources.getQuantityString(
+                R.plurals.names_and_more,
+                labels.size - 2,
+                labels.take(2).joinToString(", "),
+                labels.size - 2,
+            )
         }
     }
     val from = when (editor.sourceMode) {
         SourceMode.UNKNOWN -> context.getString(R.string.sentence_from_unknown)
         SourceMode.EVERYONE -> context.getString(R.string.sentence_from_everyone)
-        else -> if (editor.sources.isEmpty()) null else context.getString(R.string.sentence_from, names(editor.sources))
+        else -> if (editor.sources.isEmpty()) null else context.getString(R.string.sentence_from, Hebrew.afterPrefix(names(editor.sources)))
     }
     if (from == null) return context.getString(R.string.sentence_pick_senders)
     if (editor.destinations.isEmpty()) return context.getString(R.string.sentence_pick_recipients, from)
-    val parts = mutableListOf(context.getString(R.string.sentence_base, from, names(editor.destinations)))
+    val parts = mutableListOf(context.getString(R.string.sentence_base, from, Hebrew.afterPrefix(names(editor.destinations))))
     if (editor.codesOnly) parts += context.getString(R.string.sentence_codes)
     if (editor.includeWords.isNotEmpty()) {
         parts += context.getString(R.string.sentence_words, editor.includeWords.joinToString(", "))
@@ -619,9 +661,9 @@ private fun FormatStep(editor: EditorState, color: Color) {
         isFirst = false,
         isLast = false,
     ) {
-        Row(
-            Modifier.horizontalScroll(rememberScrollState()),
+        FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             presets.forEach { (preset, label) ->
                 SelectChip(
@@ -745,19 +787,19 @@ private fun MoreStep(editor: EditorState, color: Color, settings: AppSettings) {
         Spacer(Modifier.height(16.dp))
         Text(stringResource(R.string.route_color), style = MaterialTheme.typography.labelLarge, color = colors.ink)
         Spacer(Modifier.height(10.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             colors.routes.forEachIndexed { index, swatch ->
                 val selected = editor.colorIndex == index
                 Box(
                     Modifier
-                        .size(34.dp)
+                        .size(30.dp)
                         .clip(CircleShape)
                         .background(swatch)
                         .border(3.dp, if (selected) colors.ink.copy(alpha = 0.7f) else Color.Transparent, CircleShape)
                         .clickable { editor.colorIndex = index },
                     contentAlignment = Alignment.Center,
                 ) {
-                    if (selected) Icon(Icons.Rounded.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                    if (selected) Icon(Icons.Rounded.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
                 }
             }
         }

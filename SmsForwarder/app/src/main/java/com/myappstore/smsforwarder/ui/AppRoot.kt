@@ -259,8 +259,9 @@ private fun FloatingNav(current: Tab, onSelect: (Tab) -> Unit, badge: Boolean, m
                     .clip(CircleShape)
                     .background(background)
                     .clickable { onSelect(tab) }
-                    .padding(horizontal = if (selected) 18.dp else 16.dp, vertical = 12.dp)
-                    .animateContentSize(),
+                    // Before the padding, so its clip leaves room for the badge that overhangs the icon.
+                    .animateContentSize()
+                    .padding(horizontal = if (selected) 18.dp else 16.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box {

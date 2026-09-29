@@ -66,6 +66,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
@@ -98,6 +99,23 @@ fun rememberNow(periodMs: Long = 30_000L): Long {
 }
 
 val CardShape = RoundedCornerShape(24.dp)
+
+/**
+ * Lets a horizontally scrolling row run under the screen's side padding, so its items scroll out at
+ * the screen edge instead of being cut off mid-screen. Pair with an inner `padding(horizontal = by)`.
+ */
+fun Modifier.bleed(by: Dp): Modifier = layout { measurable, constraints ->
+    val extra = by.roundToPx()
+    val placeable = measurable.measure(
+        constraints.copy(
+            minWidth = constraints.minWidth + extra * 2,
+            maxWidth = if (constraints.hasBoundedWidth) constraints.maxWidth + extra * 2 else constraints.maxWidth,
+        ),
+    )
+    layout(placeable.width - extra * 2, placeable.height) {
+        placeable.place(-extra, 0)
+    }
+}
 
 @Composable
 fun HalaaCard(

@@ -92,7 +92,6 @@
     <string name="open_app_settings">פתיחת הגדרות האפליקציה</string>
     <string name="and_join">" ו"</string>
     <string name="and_more">ועוד %1$d</string>
-    <string name="names_and_more">%1$s ועוד %2$d</string>
 
     <!-- time -->
     <string name="ago_now">עכשיו</string>
@@ -158,9 +157,10 @@
     <string name="hero_week">השבוע</string>
     <string name="hero_problems">בעיות</string>
     <string name="resume_now">המשך עכשיו</string>
-    <string name="pause_hour">השהיה לשעה</string>
+    <string name="pause_label">השהיה</string>
+    <string name="pause_hour">לשעה</string>
     <string name="pause_morning">עד הבוקר</string>
-    <string name="pause_forever">השהיה עד שאמשיך</string>
+    <string name="pause_forever">עד שאמשיך</string>
     <string name="waiting_next">שליחה הבאה: %1$s</string>
     <string name="waiting_until_resume">ממתינות עד שתמשיכו את ההעברה</string>
     <string name="send_all_now">שליחת הכל עכשיו</string>
@@ -213,7 +213,7 @@
     <string name="step_format_sub">הפורמט של ההודעה שהנמען יקבל</string>
     <string name="step_more">עוד אפשרויות</string>
     <string name="step_more_sub">ביטול לפני שליחה, תשובה חוזרת, שם וצבע</string>
-    <string name="mode_selected">שולחים נבחרים</string>
+    <string name="mode_selected">נבחרים</string>
     <string name="mode_unknown">לא שמורים</string>
     <string name="mode_everyone">כולם</string>
     <string name="mode_unknown_desc">הודעות ממספרים שאינם באנשי הקשר שלכם יועברו — שימושי לטלפון עבודה.</string>
@@ -361,7 +361,7 @@
     <string name="rest_leaves">יציאה</string>
     <string name="rest_day">יום %1$s</string>
     <string name="quiet_title">שעות שקט</string>
-    <string name="quiet_switch">שעות שקט</string>
+    <string name="quiet_switch">הפעלת שעות שקט</string>
     <string name="quiet_desc">לא להעביר הודעות בשעות מסוימות — כדי לא להעיר אף אחד.</string>
     <string name="quiet_days_hint">הימים מתייחסים לשעת ההתחלה (למשל לילה שמתחיל ביום חמישי).</string>
     <string name="quiet_behavior">מה קורה להודעות בשעות השקט?</string>
@@ -552,6 +552,12 @@
         <item quantity="two">בקובץ נמצאו 2 מסלולים. להוסיף אותם למסלולים הקיימים, או להחליף את כולם?</item>
         <item quantity="many">בקובץ נמצאו %1$d מסלולים. להוסיף אותם למסלולים הקיימים, או להחליף את כולם?</item>
         <item quantity="other">בקובץ נמצאו %1$d מסלולים. להוסיף אותם למסלולים הקיימים, או להחליף את כולם?</item>
+    </plurals>
+    <plurals name="names_and_more">
+        <item quantity="one">%1$s ועוד אחד</item>
+        <item quantity="two">%1$s ועוד שניים</item>
+        <item quantity="many">%1$s ועוד %2$d</item>
+        <item quantity="other">%1$s ועוד %2$d</item>
     </plurals>
     <plurals name="recipients_count">
         <item quantity="one">נמען אחד</item>

@@ -12,6 +12,7 @@ import android.graphics.drawable.Icon
 import android.os.Build
 import com.myappstore.smsforwarder.MainActivity
 import com.myappstore.smsforwarder.R
+import com.myappstore.smsforwarder.core.Hebrew
 import com.myappstore.smsforwarder.data.ForwardEvent
 
 /** All notifications the app posts. Uses the platform API directly (minSdk 26). */
@@ -55,7 +56,7 @@ class Notifier(private val context: Context) {
         if (!canPost()) return
         val seconds = ((event.scheduledAt - System.currentTimeMillis()) / 1000L).coerceAtLeast(1L)
         val notification = builder(CHANNEL_UNDO)
-            .setContentTitle(context.getString(R.string.notif_undo_title, event.recipientLabel))
+            .setContentTitle(context.getString(R.string.notif_undo_title, Hebrew.afterPrefix(event.recipientLabel)))
             .setContentText(event.outgoing)
             .setStyle(Notification.BigTextStyle().bigText(event.outgoing))
             .setSubText(context.getString(R.string.notif_undo_sub, seconds))
@@ -77,9 +78,18 @@ class Notifier(private val context: Context) {
     fun showForwarded(event: ForwardEvent) {
         if (!canPost()) return
         val title = if (event.batchSize > 1) {
-            context.resources.getQuantityString(R.plurals.notif_forwarded_batch, event.batchSize, event.batchSize, event.recipientLabel)
+            context.resources.getQuantityString(
+                R.plurals.notif_forwarded_batch,
+                event.batchSize,
+                event.batchSize,
+                Hebrew.afterPrefix(event.recipientLabel),
+            )
         } else {
-            context.getString(R.string.notif_forwarded_title, event.senderLabel, event.recipientLabel)
+            context.getString(
+                R.string.notif_forwarded_title,
+                Hebrew.afterPrefix(event.senderLabel),
+                Hebrew.afterPrefix(event.recipientLabel),
+            )
         }
         val notification = builder(CHANNEL_ACTIVITY)
             .setContentTitle(title)
@@ -93,7 +103,7 @@ class Notifier(private val context: Context) {
     fun showReplyRelayed(event: ForwardEvent) {
         if (!canPost()) return
         val notification = builder(CHANNEL_ACTIVITY)
-            .setContentTitle(context.getString(R.string.notif_reply_title, event.senderLabel, event.recipientLabel))
+            .setContentTitle(context.getString(R.string.notif_reply_title, event.senderLabel, Hebrew.afterPrefix(event.recipientLabel)))
             .setContentText(event.outgoing)
             .setStyle(Notification.BigTextStyle().bigText(event.outgoing))
             .setGroup(GROUP_ACTIVITY)
@@ -104,7 +114,7 @@ class Notifier(private val context: Context) {
     fun showFailure(event: ForwardEvent, reason: String) {
         if (!canPost()) return
         val notification = builder(CHANNEL_PROBLEMS)
-            .setContentTitle(context.getString(R.string.notif_failed_title, event.recipientLabel))
+            .setContentTitle(context.getString(R.string.notif_failed_title, Hebrew.afterPrefix(event.recipientLabel)))
             .setContentText(reason)
             .setStyle(Notification.BigTextStyle().bigText(reason + "\n" + event.outgoing))
             .addAction(action(R.string.action_retry, ActionReceiver.ACTION_RETRY, event.id))

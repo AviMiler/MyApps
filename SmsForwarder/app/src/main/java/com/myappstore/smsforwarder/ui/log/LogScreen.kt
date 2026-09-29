@@ -94,6 +94,7 @@ import com.myappstore.smsforwarder.ui.components.Pill
 import com.myappstore.smsforwarder.ui.components.RouteIllustration
 import com.myappstore.smsforwarder.ui.components.SectionHeader
 import com.myappstore.smsforwarder.ui.components.SelectChip
+import com.myappstore.smsforwarder.ui.components.bleed
 import com.myappstore.smsforwarder.ui.components.fieldColors
 import com.myappstore.smsforwarder.ui.components.rememberNow
 import com.myappstore.smsforwarder.ui.theme.Halaa
@@ -198,8 +199,9 @@ fun LogScreen(contentPadding: PaddingValues) {
             Row(
                 Modifier
                     .fillMaxWidth()
+                    .bleed(16.dp)
                     .horizontalScroll(rememberScrollState())
-                    .padding(bottom = 6.dp),
+                    .padding(start = 16.dp, end = 16.dp, bottom = 6.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 LogFilter.entries.forEach { f ->

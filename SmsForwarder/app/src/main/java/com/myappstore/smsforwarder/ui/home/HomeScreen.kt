@@ -18,7 +18,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,14 +34,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Reply
 import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Bedtime
 import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.FilterAlt
@@ -51,7 +48,6 @@ import androidx.compose.material.icons.rounded.Key
 import androidx.compose.material.icons.rounded.Lightbulb
 import androidx.compose.material.icons.rounded.MonitorHeart
 import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material.icons.rounded.PauseCircle
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material.icons.rounded.SimCard
@@ -75,6 +71,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -128,7 +126,6 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import kotlin.math.sin
-import kotlin.random.Random
 
 enum class HeroMode { SETUP, OFF, PAUSED, REST, QUIET, ACTIVE }
 
@@ -196,8 +193,8 @@ fun HomeScreen(
                 onFix = onFixPermissions,
             )
         }
-        item(key = "quick") {
-            QuickActions(mode = mode, now = now)
+        if (mode == HeroMode.ACTIVE || mode == HeroMode.PAUSED || mode == HeroMode.REST || mode == HeroMode.QUIET) {
+            item(key = "quick") { QuickActions(mode) }
         }
         if (waiting.isNotEmpty()) {
             item(key = "waiting") {
@@ -408,9 +405,14 @@ private fun StatusHero(
                 }
             }
             Spacer(Modifier.height(18.dp))
-            Text(title, style = MaterialTheme.typography.headlineLarge, color = onHero)
-            Spacer(Modifier.height(4.dp))
-            Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = softOnHero)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(title, style = MaterialTheme.typography.headlineLarge, color = onHero)
+                    Spacer(Modifier.height(4.dp))
+                    Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = softOnHero)
+                }
+                HeroEmblem(mode)
+            }
             if (mode == HeroMode.SETUP) {
                 Spacer(Modifier.height(18.dp))
                 PrimaryButton(
@@ -490,14 +492,15 @@ private fun HeroStat(value: Int, label: String, color: Color) {
     }
 }
 
-/** Decorative layer: transit lines while active, a night sky during Shabbat and quiet hours. */
+/** Decorative layer: transit lines (dashed while paused), or a night sky during Shabbat and quiet hours. */
 @Composable
 private fun HeroBackdrop(mode: HeroMode, animate: Boolean, modifier: Modifier) {
     val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     when (mode) {
-        HeroMode.ACTIVE -> {
+        HeroMode.ACTIVE, HeroMode.PAUSED -> {
+            val paused = mode == HeroMode.PAUSED
             // State objects are read inside the Canvas so only drawing repeats every frame.
-            val progress: State<Float>? = if (animate) {
+            val progress: State<Float>? = if (animate && !paused) {
                 rememberInfiniteTransition(label = "backdrop").animateFloat(
                     initialValue = 0f,
                     targetValue = 1f,
@@ -519,8 +522,17 @@ private fun HeroBackdrop(mode: HeroMode, animate: Boolean, modifier: Modifier) {
                     moveTo(x(0.25f), h * 1.05f)
                     cubicTo(x(0.5f), h * 0.75f, x(0.7f), h * 0.85f, x(1.05f), h * 0.7f)
                 }
-                drawPath(line, Color.White.copy(alpha = 0.14f), style = Stroke(width = 10.dp.toPx(), cap = StrokeCap.Round))
-                drawPath(second, Color.White.copy(alpha = 0.08f), style = Stroke(width = 6.dp.toPx(), cap = StrokeCap.Round))
+                val dashes = if (paused) PathEffect.dashPathEffect(floatArrayOf(16.dp.toPx(), 14.dp.toPx())) else null
+                drawPath(
+                    line,
+                    Color.White.copy(alpha = 0.14f),
+                    style = Stroke(width = 10.dp.toPx(), cap = StrokeCap.Round, pathEffect = dashes),
+                )
+                drawPath(
+                    second,
+                    Color.White.copy(alpha = 0.08f),
+                    style = Stroke(width = 6.dp.toPx(), cap = StrokeCap.Round, pathEffect = dashes),
+                )
                 val p = progress?.value ?: return@Canvas
                 val measure = androidx.compose.ui.graphics.PathMeasure()
                 measure.setPath(line, false)
@@ -542,99 +554,162 @@ private fun HeroBackdrop(mode: HeroMode, animate: Boolean, modifier: Modifier) {
             } else {
                 null
             }
-            val stars = remember {
-                val random = Random(7)
-                List(22) { Triple(random.nextFloat(), random.nextFloat() * 0.75f, random.nextFloat()) }
-            }
             Canvas(modifier) {
                 val w = size.width
                 val h = size.height
                 val t = twinkle?.value ?: 0.5f
-                stars.forEach { (sx, sy, phase) ->
-                    val alpha = 0.25f + 0.55f * ((sin((t + phase) * Math.PI * 2) + 1) / 2).toFloat()
-                    drawCircle(Color.White.copy(alpha = alpha), radius = (1.2f + phase * 1.6f).dp.toPx(), center = Offset(w * sx, h * sy))
+                HeroStars.forEachIndexed { i, star ->
+                    val phase = (i * 0.37f) % 1f
+                    val alpha = 0.2f + 0.5f * ((sin((t + phase) * Math.PI * 2) + 1) / 2).toFloat()
+                    val cx = if (rtl) w * star.x else w * (1f - star.x)
+                    drawCircle(Color.White.copy(alpha = alpha), radius = star.radius.dp.toPx(), center = Offset(cx, h * star.y))
                 }
-                val moonCenter = Offset(if (rtl) w * 0.14f else w * 0.86f, h * 0.24f)
-                val radius = 22.dp.toPx()
-                val moon = Path().apply {
-                    addOval(androidx.compose.ui.geometry.Rect(center = moonCenter, radius = radius))
-                }
-                val bite = Path().apply {
-                    addOval(
-                        androidx.compose.ui.geometry.Rect(
-                            center = Offset(moonCenter.x + radius * 0.55f, moonCenter.y - radius * 0.25f),
-                            radius = radius * 0.92f,
-                        ),
-                    )
-                }
-                val crescent = Path().apply { op(moon, bite, PathOperation.Difference) }
-                drawPath(crescent, Color(0xFFFFE7A8).copy(alpha = 0.9f))
-            }
-        }
-        HeroMode.PAUSED -> Canvas(modifier) {
-            val barW = 16.dp.toPx()
-            val barH = 70.dp.toPx()
-            val baseX = if (rtl) 26.dp.toPx() else size.width - 26.dp.toPx() - barW * 2.6f
-            val top = size.height * 0.18f
-            for (i in 0 until 2) {
-                drawRoundRect(
-                    color = Color.White.copy(alpha = 0.12f),
-                    topLeft = Offset(baseX + i * barW * 1.6f, top),
-                    size = androidx.compose.ui.geometry.Size(barW, barH),
-                    cornerRadius = CornerRadius(barW / 2, barW / 2),
-                )
             }
         }
         else -> Unit
     }
 }
 
-// ------------------------------------------------------------------ quick actions
+/** A star in the hero's night sky: [x] runs from the card's end edge, so text never sits on a star. */
+private class Star(val x: Float, val y: Float, val radius: Float)
 
+/** Hand-placed in the gaps between the switch, the title, the emblem and the numbers. */
+private val HeroStars = listOf(
+    Star(0.30f, 0.09f, 1.6f), Star(0.37f, 0.19f, 1.1f), Star(0.45f, 0.07f, 2.0f), Star(0.53f, 0.16f, 1.3f),
+    Star(0.60f, 0.06f, 1.1f), Star(0.03f, 0.30f, 1.2f), Star(0.035f, 0.55f, 1.6f), Star(0.08f, 0.65f, 1.3f),
+    Star(0.19f, 0.61f, 1.1f), Star(0.38f, 0.76f, 1.2f), Star(0.47f, 0.90f, 1.8f), Star(0.55f, 0.74f, 1.1f),
+    Star(0.60f, 0.94f, 1.3f), Star(0.975f, 0.30f, 1.2f),
+)
+
+/** The illustration beside the hero title: a pause button, a crescent moon, or Shabbat candles. */
 @Composable
-private fun QuickActions(mode: HeroMode, now: Long) {
-    val colors = Halaa.colors
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
+private fun HeroEmblem(mode: HeroMode) {
+    if (mode != HeroMode.PAUSED && mode != HeroMode.QUIET && mode != HeroMode.REST) return
+    Spacer(Modifier.width(12.dp))
+    Canvas(Modifier.size(64.dp)) {
+        val c = center
         when (mode) {
-            HeroMode.PAUSED -> ActionChip(Icons.Rounded.PlayArrow, stringResource(R.string.resume_now), colors.held) {
-                Graph.settings.update { it.copy(pausedUntil = 0L) }
+            HeroMode.PAUSED -> {
+                drawCircle(Color.White.copy(alpha = 0.16f), radius = size.minDimension / 2)
+                val barW = 8.dp.toPx()
+                val barH = 26.dp.toPx()
+                val gap = 8.dp.toPx()
+                listOf(-(gap / 2 + barW), gap / 2).forEach { dx ->
+                    drawRoundRect(
+                        color = Color.White.copy(alpha = 0.92f),
+                        topLeft = Offset(c.x + dx, c.y - barH / 2),
+                        size = Size(barW, barH),
+                        cornerRadius = CornerRadius(barW / 2),
+                    )
+                }
             }
-            HeroMode.ACTIVE, HeroMode.REST, HeroMode.QUIET -> {
-                ActionChip(Icons.Rounded.Pause, stringResource(R.string.pause_hour), colors.ink) {
-                    Graph.settings.update { it.copy(pausedUntil = now + 60 * 60_000L) }
+            HeroMode.QUIET -> {
+                val moonlight = Color(0xFFFFE7A8)
+                val r = 22.dp.toPx()
+                drawCircle(moonlight.copy(alpha = 0.10f), radius = r * 1.4f, center = c)
+                val moon = Path().apply { addOval(Rect(center = c, radius = r)) }
+                val bite = Path().apply {
+                    addOval(Rect(center = Offset(c.x + r * 0.55f, c.y - r * 0.25f), radius = r * 0.92f))
                 }
-                ActionChip(Icons.Rounded.Bedtime, stringResource(R.string.pause_morning), colors.ink) {
-                    Graph.settings.update { it.copy(pausedUntil = Fmt.nextMorning(now)) }
-                }
-                ActionChip(Icons.Rounded.PauseCircle, stringResource(R.string.pause_forever), colors.ink) {
-                    Graph.settings.update { it.copy(pausedUntil = HoldPolicy.FOREVER) }
-                }
+                drawPath(Path().apply { op(moon, bite, PathOperation.Difference) }, moonlight.copy(alpha = 0.95f))
             }
-            else -> Unit
+            else -> {
+                val flameColor = Color(0xFFFFC857)
+                val wax = Color(0xFFFFF4DC)
+                val candleW = 9.dp.toPx()
+                val candleTop = 30.dp.toPx()
+                val baseY = 58.dp.toPx()
+                val glowCenter = Offset(c.x, 20.dp.toPx())
+                drawCircle(
+                    Brush.radialGradient(listOf(flameColor.copy(alpha = 0.38f), Color.Transparent), glowCenter, 30.dp.toPx()),
+                    radius = 30.dp.toPx(),
+                    center = glowCenter,
+                )
+                listOf(c.x - 10.dp.toPx(), c.x + 10.dp.toPx()).forEach { cx ->
+                    drawRoundRect(
+                        color = wax,
+                        topLeft = Offset(cx - candleW / 2, candleTop),
+                        size = Size(candleW, baseY - candleTop),
+                        cornerRadius = CornerRadius(2.dp.toPx()),
+                    )
+                    drawLine(
+                        Color.White.copy(alpha = 0.7f),
+                        Offset(cx, candleTop),
+                        Offset(cx, candleTop - 3.dp.toPx()),
+                        strokeWidth = 1.5.dp.toPx(),
+                    )
+                    drawPath(flame(cx, candleTop - 2.dp.toPx(), 15.dp.toPx(), 4.5.dp.toPx()), flameColor)
+                    drawPath(flame(cx, candleTop - 2.dp.toPx(), 7.dp.toPx(), 2.2.dp.toPx()), Color(0xFFFFF6D6))
+                }
+                drawRoundRect(
+                    color = Color.White.copy(alpha = 0.45f),
+                    topLeft = Offset(c.x - 21.dp.toPx(), baseY),
+                    size = Size(42.dp.toPx(), 4.dp.toPx()),
+                    cornerRadius = CornerRadius(2.dp.toPx()),
+                )
+            }
         }
     }
 }
 
+/** A teardrop standing on ([cx], [bottom]). */
+private fun flame(cx: Float, bottom: Float, height: Float, halfWidth: Float) = Path().apply {
+    val tip = bottom - height
+    moveTo(cx, tip)
+    cubicTo(cx + halfWidth * 1.2f, tip + height * 0.45f, cx + halfWidth, bottom, cx, bottom)
+    cubicTo(cx - halfWidth, bottom, cx - halfWidth * 1.2f, tip + height * 0.45f, cx, tip)
+    close()
+}
+
+// ------------------------------------------------------------------ quick actions
+
+/** "Resume" while paused; otherwise one-tap pauses: for an hour, until morning, or until resumed. */
 @Composable
-private fun ActionChip(icon: ImageVector, label: String, color: Color, onClick: () -> Unit) {
+private fun QuickActions(mode: HeroMode) {
     val colors = Halaa.colors
-    Row(
-        Modifier
+    if (mode == HeroMode.PAUSED) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clip(CircleShape)
+                .background(colors.heldSoft)
+                .clickable { Graph.settings.update { it.copy(pausedUntil = 0L) } }
+                .padding(vertical = 12.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(Icons.Rounded.PlayArrow, contentDescription = null, tint = colors.held, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(6.dp))
+            Text(stringResource(R.string.resume_now), style = MaterialTheme.typography.titleSmall, color = colors.held)
+        }
+        return
+    }
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Icon(Icons.Rounded.Pause, contentDescription = null, tint = colors.inkSoft, modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(4.dp))
+        Text(stringResource(R.string.pause_label), style = MaterialTheme.typography.labelLarge, color = colors.inkSoft)
+        Spacer(Modifier.width(12.dp))
+        PauseChip(stringResource(R.string.pause_hour), Modifier.weight(1f)) { System.currentTimeMillis() + 60 * 60_000L }
+        Spacer(Modifier.width(6.dp))
+        PauseChip(stringResource(R.string.pause_morning), Modifier.weight(1f)) { Fmt.nextMorning(System.currentTimeMillis()) }
+        Spacer(Modifier.width(6.dp))
+        PauseChip(stringResource(R.string.pause_forever), Modifier.weight(1f)) { HoldPolicy.FOREVER }
+    }
+}
+
+@Composable
+private fun PauseChip(label: String, modifier: Modifier, until: () -> Long) {
+    val colors = Halaa.colors
+    Box(
+        modifier
             .clip(CircleShape)
             .background(colors.surface)
             .border(1.dp, colors.outline, CircleShape)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 9.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .clickable { Graph.settings.update { it.copy(pausedUntil = until()) } }
+            .padding(horizontal = 6.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center,
     ) {
-        Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(18.dp))
-        Spacer(Modifier.width(6.dp))
-        Text(label, style = MaterialTheme.typography.labelLarge, color = color)
+        Text(label, style = MaterialTheme.typography.labelLarge, color = colors.ink, maxLines = 1)
     }
 }
 
