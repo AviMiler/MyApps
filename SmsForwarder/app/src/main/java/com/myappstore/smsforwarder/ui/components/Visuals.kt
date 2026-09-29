@@ -205,7 +205,7 @@ fun PartyStack(parties: List<Party>, color: Color, max: Int, modifier: Modifier 
                     .background(color),
                 contentAlignment = Alignment.Center,
             ) {
-                Text("+$extra", color = Color.White, style = MaterialTheme.typography.labelLarge)
+                Text("+$extra", color = contentOn(color), style = MaterialTheme.typography.labelLarge)
             }
         }
     }
@@ -329,7 +329,7 @@ fun StepBadge(number: Int, color: Color, modifier: Modifier = Modifier) {
             .background(color),
         contentAlignment = Alignment.Center,
     ) {
-        Text(number.toString(), color = Color.White, style = MaterialTheme.typography.titleSmall)
+        Text(number.toString(), color = contentOn(color), style = MaterialTheme.typography.titleSmall)
     }
 }
 

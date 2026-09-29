@@ -108,6 +108,7 @@ import com.myappstore.smsforwarder.ui.components.SmsPreview
 import com.myappstore.smsforwarder.ui.components.SwitchRow
 import com.myappstore.smsforwarder.ui.components.TimeRangeRow
 import com.myappstore.smsforwarder.ui.components.TopBar
+import com.myappstore.smsforwarder.ui.components.contentOn
 import com.myappstore.smsforwarder.ui.components.fieldColors
 import com.myappstore.smsforwarder.ui.components.pluralText
 import com.myappstore.smsforwarder.ui.theme.Halaa
@@ -799,7 +800,7 @@ private fun MoreStep(editor: EditorState, color: Color, settings: AppSettings) {
                         .clickable { editor.colorIndex = index },
                     contentAlignment = Alignment.Center,
                 ) {
-                    if (selected) Icon(Icons.Rounded.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                    if (selected) Icon(Icons.Rounded.Check, contentDescription = null, tint = contentOn(swatch), modifier = Modifier.size(16.dp))
                 }
             }
         }

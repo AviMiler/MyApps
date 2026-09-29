@@ -65,6 +65,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
@@ -99,6 +100,9 @@ fun rememberNow(periodMs: Long = 30_000L): Long {
 }
 
 val CardShape = RoundedCornerShape(24.dp)
+
+/** Text and icon color on a [fill]: white on saturated colors, dark on light ones (the dark theme's ink, bright yellow). */
+fun contentOn(fill: Color): Color = if (fill.luminance() > 0.5f) Color(0xFF14161C) else Color.White
 
 /**
  * Lets a horizontally scrolling row run under the screen's side padding, so its items scroll out at
@@ -396,6 +400,7 @@ fun SelectChip(
     icon: ImageVector? = null,
 ) {
     val background by animateColorAsState(if (selected) color else Halaa.colors.surfaceAlt, label = "chip")
+    val onSelected = contentOn(color)
     Row(
         modifier
             .clip(CircleShape)
@@ -409,7 +414,7 @@ fun SelectChip(
             Icon(
                 icon,
                 contentDescription = null,
-                tint = if (selected) Color.White else Halaa.colors.inkSoft,
+                tint = if (selected) onSelected else Halaa.colors.inkSoft,
                 modifier = Modifier.size(16.dp),
             )
             Spacer(Modifier.width(6.dp))
@@ -417,7 +422,7 @@ fun SelectChip(
         Text(
             label,
             style = MaterialTheme.typography.labelLarge,
-            color = if (selected) Color.White else Halaa.colors.ink,
+            color = if (selected) onSelected else Halaa.colors.ink,
         )
     }
 }
@@ -460,7 +465,7 @@ fun DaysPicker(mask: Int, onChange: (Int) -> Unit, modifier: Modifier = Modifier
                 Text(
                     Fmt.dayLetters[index],
                     style = MaterialTheme.typography.titleSmall,
-                    color = if (on) Color.White else Halaa.colors.inkSoft,
+                    color = if (on) contentOn(color) else Halaa.colors.inkSoft,
                 )
             }
         }
@@ -561,7 +566,7 @@ fun PrimaryButton(
     enabled: Boolean = true,
     icon: ImageVector? = null,
     color: Color = Halaa.colors.brand,
-    contentColor: Color = Color.White,
+    contentColor: Color = contentOn(color),
     height: Dp = 54.dp,
 ) {
     val interaction = remember { MutableInteractionSource() }
@@ -770,7 +775,7 @@ fun CheckCircle(checked: Boolean, modifier: Modifier = Modifier, color: Color = 
         contentAlignment = Alignment.Center,
     ) {
         if (checked) {
-            Icon(Icons.Rounded.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+            Icon(Icons.Rounded.Check, contentDescription = null, tint = contentOn(color), modifier = Modifier.size(16.dp))
         }
     }
 }
