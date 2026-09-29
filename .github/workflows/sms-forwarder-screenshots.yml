@@ -10,6 +10,8 @@ on:
 jobs:
   screenshots:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,12 +29,17 @@ jobs:
         working-directory: SmsForwarder
         run: chmod +x gradlew && ./gradlew testDebugUnitTest --no-daemon
 
-      - name: Print screenshots
+      # Screenshots go to a hidden ref (not a branch) so they can be fetched with git.
+      - name: Publish screenshots
         if: always()
-        working-directory: SmsForwarder/app/build/screenshots
+        working-directory: SmsForwarder/app/build
+        env:
+          TOKEN: ${{ github.token }}
         run: |
-          command -v convert >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick)
-          for f in *.png; do
-            convert "$f" -resize 440x -quality 70 "/tmp/${f%.png}.jpg"
-            echo "@@IMG ${f%.png} $(base64 -w0 "/tmp/${f%.png}.jpg")"
-          done
+          mkdir -p screenshots
+          cp -r test-results screenshots/ 2>/dev/null || true
+          cd screenshots
+          git init -q .
+          git add -A
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "screenshots $GITHUB_SHA"
+          git push -f "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:refs/screenshots/sms-forwarder

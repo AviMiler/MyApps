@@ -220,7 +220,19 @@ class ForwardEngine(
             }
             return true
         }
-        sendFresh(base, s)
+        if (!s.masterEnabled) {
+            record(base.copy(status = EventStatus.SKIPPED, reason = Reason.APP_OFF))
+            return true
+        }
+        // Replies are SMS sent by this phone too, so they respect pauses, quiet hours and Shabbat.
+        when (val hold = HoldPolicy.decide(now, zone, s.holdRules(zone, holidays))) {
+            is HoldDecision.Hold -> {
+                record(base.copy(status = EventStatus.HELD, reason = reasonFor(hold.cause), scheduledAt = hold.until))
+                rearm()
+            }
+            is HoldDecision.Drop -> record(base.copy(status = EventStatus.SKIPPED, reason = reasonFor(hold.cause)))
+            HoldDecision.Go -> sendFresh(base, s)
+        }
         return true
     }
 
