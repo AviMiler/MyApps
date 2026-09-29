@@ -173,7 +173,7 @@ fun HalaaApp(activity: MainActivity) {
 }
 
 @Composable
-private fun MainScaffold(
+internal fun MainScaffold(
     tab: Tab,
     onTab: (Tab) -> Unit,
     onOpenRoute: (Long?) -> Unit,

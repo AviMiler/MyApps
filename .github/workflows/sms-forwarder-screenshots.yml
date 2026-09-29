@@ -1,0 +1,38 @@
+name: SmsForwarder screenshots (temporary)
+
+on:
+  push:
+    branches: [ ccr-360c86fd-9td1w7 ]
+    paths:
+      - 'SmsForwarder/**'
+      - '.github/workflows/sms-forwarder-screenshots.yml'
+
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Unit tests and screenshots
+        working-directory: SmsForwarder
+        run: chmod +x gradlew && ./gradlew testDebugUnitTest --no-daemon
+
+      - name: Print screenshots
+        if: always()
+        working-directory: SmsForwarder/app/build/screenshots
+        run: |
+          command -v convert >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick)
+          for f in *.png; do
+            convert "$f" -resize 440x -quality 70 "/tmp/${f%.png}.jpg"
+            echo "@@IMG ${f%.png} $(base64 -w0 "/tmp/${f%.png}.jpg")"
+          done
