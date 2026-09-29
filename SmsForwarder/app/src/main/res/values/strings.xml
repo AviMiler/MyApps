@@ -470,7 +470,7 @@
     <string name="health_fix_airplane">להגדרות</string>
     <string name="tips_title">טיפים</string>
     <string name="tip_rcs_title">הודעות צ׳אט (RCS)</string>
-    <string name="tip_rcs">הודעות שנשלחות כצ׳אט (RCS) ב-Google Messages אינן SMS, ולכן אי אפשר להעביר אותן. אם הודעה לא הועברה — בדקו אם השולח משתמש בצ׳אט.</string>
+    <string name="tip_rcs">הודעות שנשלחות כצ׳אט (RCS) אינן SMS, ולכן הן לא מגיעות להלאה בכלל ולא מופיעות ביומן. אם הודעות משולח מסוים לא מופיעות ביומן, כנראה שהוא שולח בצ׳אט. הפתרון: ב-Google Messages בטלפון הזה ← תמונת הפרופיל ← הגדרות ← צ׳אטים של RCS ← לכבות. מאז יגיעו אליכם הודעות SMS רגילות, והלאה תעביר אותן.</string>
     <string name="tip_restricted_title">בקשת ההרשאה לא מופיעה?</string>
     <string name="tip_restricted">באנדרואיד 13 ומעלה, אפליקציות שהותקנו מקובץ עשויות להיחסם מהרשאות SMS. אם בקשת ההרשאה לא מופיעה: הגדרות ← אפליקציות ← הלאה ← ⋮ (למעלה) ← ״אפשר הגדרות מוגבלות״, ואז נסו שוב.</string>
     <string name="tip_vendor_title">טיפ ליצרן הטלפון שלכם</string>
