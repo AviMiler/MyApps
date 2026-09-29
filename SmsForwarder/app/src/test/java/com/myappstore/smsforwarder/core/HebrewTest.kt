@@ -20,8 +20,14 @@ class HebrewTest {
 
     @Test
     fun invisibleMarksAreSkipped() {
-        assertEquals("‏אבא", Hebrew.afterPrefix("‏אבא"))
-        assertEquals("-‏Max", Hebrew.afterPrefix("‏Max"))
+        assertEquals("\u200Fאבא", Hebrew.afterPrefix("\u200Fאבא"))
+        assertEquals("-\u200FMax", Hebrew.afterPrefix("\u200FMax"))
         assertEquals("", Hebrew.afterPrefix(""))
+    }
+
+    @Test
+    fun arrowKeepsRightToLeftOrder() {
+        assertEquals("\u200FLeumi\u200F ← HOT", Hebrew.arrow("Leumi", "HOT"))
+        assertEquals("Leumi\u200F, Max", Hebrew.list(listOf("Leumi", "Max")))
     }
 }

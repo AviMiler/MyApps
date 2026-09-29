@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.myappstore.smsforwarder.core.Days
+import com.myappstore.smsforwarder.core.Hebrew
 import com.myappstore.smsforwarder.core.MessageTemplate
 import com.myappstore.smsforwarder.core.Phones
 import com.myappstore.smsforwarder.core.SourceMode
@@ -59,9 +60,7 @@ data class Route(
         return when {
             from.isEmpty() -> to
             to.isEmpty() -> from
-            // The leading RLM keeps the line right-to-left even for Latin names, so the arrow
-            // always points from the sender to the recipient.
-            else -> "‏$from ← $to"
+            else -> Hebrew.arrow(from, to)
         }
     }
 }

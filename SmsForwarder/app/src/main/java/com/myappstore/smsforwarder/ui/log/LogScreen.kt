@@ -78,6 +78,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.myappstore.smsforwarder.Graph
 import com.myappstore.smsforwarder.R
+import com.myappstore.smsforwarder.core.Hebrew
 import com.myappstore.smsforwarder.core.Phones
 import com.myappstore.smsforwarder.data.EventKind
 import com.myappstore.smsforwarder.data.EventStatus
@@ -359,7 +360,7 @@ private fun EventRow(
                     Spacer(Modifier.width(4.dp))
                 }
                 Text(
-                    "‏${event.senderLabel} ← ${event.recipientLabel}",
+                    Hebrew.arrow(event.senderLabel, event.recipientLabel),
                     style = MaterialTheme.typography.titleSmall,
                     color = colors.ink,
                     maxLines = 1,

@@ -98,5 +98,5 @@ app/src/main/java/com/myappstore/smsforwarder/
 כ-artifact בשם `SmsForwarder-debug-apk`.
 
 בדיקות: `./gradlew testDebugUnitTest` מריץ את בדיקות הלוגיקה (התאמת מספרים, זיהוי קודים, תבניות,
-זמני שקיעה, לוח שבת וחג, מדיניות ההמתנה) ובנוסף מצייר את כל המסכים עם נתוני דוגמה (Robolectric)
-לתיקייה `app/build/screenshots`.
+זמני שקיעה, לוח שבת וחג, מדיניות ההמתנה, ניסוח בעברית), בדיקות של מנוע ההעברה מול מסד נתונים
+בזיכרון, ובנוסף מצייר את כל המסכים עם נתוני דוגמה (Robolectric) לתיקייה `app/build/screenshots`.

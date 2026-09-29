@@ -349,7 +349,7 @@ private fun routeSentence(context: Context, editor: EditorState): String {
             else -> context.resources.getQuantityString(
                 R.plurals.names_and_more,
                 labels.size - 2,
-                labels.take(2).joinToString(", "),
+                Hebrew.list(labels.take(2)),
                 labels.size - 2,
             )
         }

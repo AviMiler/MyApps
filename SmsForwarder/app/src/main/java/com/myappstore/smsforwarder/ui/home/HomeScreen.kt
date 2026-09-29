@@ -91,6 +91,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.myappstore.smsforwarder.Graph
 import com.myappstore.smsforwarder.R
+import com.myappstore.smsforwarder.core.Hebrew
 import com.myappstore.smsforwarder.core.HoldPolicy
 import com.myappstore.smsforwarder.core.RestCalendar
 import com.myappstore.smsforwarder.core.SourceMode
@@ -757,7 +758,7 @@ private fun WaitingCard(
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    "‏${event.senderLabel} ← ${event.recipientLabel}",
+                    Hebrew.arrow(event.senderLabel, event.recipientLabel),
                     style = MaterialTheme.typography.labelLarge,
                     color = colors.ink,
                     maxLines = 1,

@@ -73,6 +73,8 @@ class ForwardEngine(
         val hold = HoldPolicy.decide(now, zone, s.holdRules(zone, holidays))
         val localNow = LocalDateTime.ofInstant(Instant.ofEpochMilli(now), zone)
         val handledRecipients = HashSet<String>()
+        // A recipient that one route skips may still be served by a later route, so skips are logged last.
+        val skipped = LinkedHashMap<String, ForwardEvent>()
         var scheduled = false
 
         for (route in routes) {
@@ -89,10 +91,11 @@ class ForwardEngine(
                 ?: route.sources.firstOrNull { Phones.same(it.address, sms.sender) }?.name
             val routeName = routeName(route)
             val text = render(route, routeName, sms.sender, senderName, sms.body, code, now, sms.subId)
-            val skip = skipReason(route, sms, code, localNow, s)
+            val routeSkip = skipReason(route, sms, code, localNow, s)
 
             for (destination in route.destinations) {
-                if (!handledRecipients.add(Phones.key(destination.address))) continue
+                val key = Phones.key(destination.address)
+                if (key in handledRecipients) continue
                 val base = ForwardEvent(
                     kind = EventKind.FORWARD,
                     routeId = route.id,
@@ -110,15 +113,19 @@ class ForwardEngine(
                     sendSubId = route.sendSubId,
                     receiveSubId = sms.subId,
                 )
+                val skip = when {
+                    routeSkip != Reason.NONE -> routeSkip
+                    Phones.same(destination.address, sms.sender) -> Reason.SELF_LOOP
+                    hold is HoldDecision.Drop -> reasonFor(hold.cause)
+                    s.loopGuard && isDuplicate(sms, destination.address, now) -> Reason.DUPLICATE
+                    else -> Reason.NONE
+                }
+                if (skip != Reason.NONE) {
+                    skipped.putIfAbsent(key, base.copy(status = EventStatus.SKIPPED, reason = skip))
+                    continue
+                }
+                handledRecipients += key
                 when {
-                    skip != Reason.NONE ->
-                        record(base.copy(status = EventStatus.SKIPPED, reason = skip))
-                    Phones.same(destination.address, sms.sender) ->
-                        record(base.copy(status = EventStatus.SKIPPED, reason = Reason.SELF_LOOP))
-                    hold is HoldDecision.Drop ->
-                        record(base.copy(status = EventStatus.SKIPPED, reason = reasonFor(hold.cause)))
-                    s.loopGuard && isDuplicate(sms, destination.address, now) ->
-                        record(base.copy(status = EventStatus.SKIPPED, reason = Reason.DUPLICATE))
                     s.loopGuard && isBurst(route, now) -> {
                         record(base.copy(status = EventStatus.BLOCKED, reason = Reason.BURST))
                         notifyBurst(routeName, s)
@@ -147,6 +154,7 @@ class ForwardEngine(
                 }
             }
         }
+        skipped.forEach { (key, event) -> if (key !in handledRecipients) record(event) }
         if (scheduled) rearm()
     }
 
