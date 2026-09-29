@@ -510,6 +510,12 @@
     <string name="onb_perm_notify_body">עדכון על תקלות וחלון ביטול לפני שליחה.</string>
     <string name="onb_privacy">הכל קורה בתוך הטלפון שלכם. ההודעות לא עוברות דרך שום שרת.</string>
 
+    <!-- launcher shortcuts -->
+    <string name="shortcut_new_route">מסלול חדש</string>
+    <string name="shortcut_log">יומן</string>
+    <string name="shortcut_pause">השהיה לשעה</string>
+    <string name="paused_for_hour">ההעברה מושהית לשעה</string>
+
     <!-- plurals -->
     <plurals name="ago_minutes">
         <item quantity="one">לפני דקה</item>

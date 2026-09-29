@@ -118,17 +118,20 @@ fun HalaaApp(activity: MainActivity) {
             if (stack.size > 1) stack.removeAt(stack.lastIndex)
         }
 
-        val requestedTab = activity.requestedTab.value
-        LaunchedEffect(requestedTab) {
-            if (requestedTab == MainActivity.TAB_LOG && settings.onboardingDone) {
-                tab = Tab.LOG
-                while (stack.size > 1) stack.removeAt(stack.lastIndex)
-                if (stack.firstOrNull() != Screen.Main) {
-                    stack.clear()
-                    stack.add(Screen.Main)
+        val requested = activity.requestedAction.value
+        LaunchedEffect(requested) {
+            if (requested != null && settings.onboardingDone) {
+                stack.clear()
+                stack.add(Screen.Main)
+                when (requested) {
+                    MainActivity.TAB_LOG -> tab = Tab.LOG
+                    MainActivity.ACTION_NEW_ROUTE -> {
+                        tab = Tab.ROUTES
+                        stack.add(Screen.Editor(null))
+                    }
                 }
             }
-            if (requestedTab != null) activity.requestedTab.value = null
+            if (requested != null) activity.requestedAction.value = null
         }
 
         val permissions = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { }
