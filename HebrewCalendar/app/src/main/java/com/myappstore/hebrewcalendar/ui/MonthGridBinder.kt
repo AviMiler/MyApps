@@ -53,7 +53,7 @@ class MonthGridBinder(
         }
         view.findViewById<TextView>(R.id.cell_secondary).text = cell.secondaryLabel
         view.findViewById<TextView>(R.id.cell_marker).text = CellStyle.markerText(cell)
-        view.setBackgroundResource(CellStyle.background(cell, cell.date == selected))
+        view.setBackgroundResource(CellStyle.background(cell, cell.date == selected, R.drawable.cell_default))
         view.contentDescription = DateLabels.fullGregorianDate(cell.date)
         view.setOnClickListener { onDayClick(cell.date) }
         return view

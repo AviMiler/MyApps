@@ -3,7 +3,8 @@
     android:id="@+id/widget_cell"
     android:layout_width="0dp"
     android:layout_height="match_parent"
-    android:layout_margin="1dp"
+    android:layout_margin="0.5dp"
+    android:background="@drawable/widget_cell_default"
     android:layout_weight="1"
     android:gravity="center"
     android:orientation="vertical">

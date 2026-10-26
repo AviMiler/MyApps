@@ -8,5 +8,6 @@
     <color name="rest_day">#FFFF8A80</color>
     <color name="holiday">#FFF2C46D</color>
     <color name="selected_outline">#FF8DB4F0</color>
+    <color name="grid_line">#FF33373D</color>
     <color name="widget_background">#F21C1F24</color>
 </resources>

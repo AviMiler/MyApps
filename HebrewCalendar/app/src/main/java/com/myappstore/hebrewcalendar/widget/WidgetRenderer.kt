@@ -59,8 +59,8 @@ object WidgetRenderer {
         views.setTextColor(R.id.widget_cell_primary, ContextCompat.getColor(context, CellStyle.primaryColor(cell)))
         views.setTextViewText(R.id.widget_cell_secondary, cell.secondaryLabel)
         views.setTextViewText(R.id.widget_cell_marker, CellStyle.markerText(cell))
-        val background = CellStyle.background(cell, isSelected = false)
-        if (background != 0) views.setInt(R.id.widget_cell, "setBackgroundResource", background)
+        val background = CellStyle.background(cell, isSelected = false, plain = R.drawable.widget_cell_default)
+        views.setInt(R.id.widget_cell, "setBackgroundResource", background)
         views.setOnClickPendingIntent(R.id.widget_cell, openDay(context, cell.date))
         return views
     }

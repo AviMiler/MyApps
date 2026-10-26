@@ -17,12 +17,16 @@ object CellStyle {
     @ColorRes
     fun primaryColor(cell: DayCell): Int = if (cell.isRestDay) R.color.rest_day else R.color.text_primary
 
-    /** @return a background drawable, or 0 for none. */
+    /**
+     * Cells are opaque tiles on a grid-line-colored container, so every cell needs a
+     * solid background for the lines between them to show.
+     * @param plain the background of an ordinary day (app and widget differ).
+     */
     @DrawableRes
-    fun background(cell: DayCell, isSelected: Boolean): Int = when {
+    fun background(cell: DayCell, isSelected: Boolean, @DrawableRes plain: Int): Int = when {
         cell.isToday && isSelected -> R.drawable.cell_today_selected
         cell.isToday -> R.drawable.cell_today
         isSelected -> R.drawable.cell_selected
-        else -> 0
+        else -> plain
     }
 }

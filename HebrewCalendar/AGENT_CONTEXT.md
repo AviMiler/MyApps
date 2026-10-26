@@ -18,6 +18,7 @@ by the shared `.github/workflows/build-apk.yml`.
   no Android SDK; sources were type-checked against the Android 14 framework).
 
 ## Last Changes
+- 2026-10-26 — Grid lines between day cells (`ui/CellStyle.kt`, cell layouts/drawables, `grid_line` color).
 - 2026-10-26 — Created the app (all files). See CHANGELOG.md.
 
 ## Entry Points
@@ -43,4 +44,6 @@ by the shared `.github/workflows/build-apk.yml`.
   (2046-10-01) wrong (see `HebrewDateTest.roshHashana5807`).
 - Month index 5 (`ADAR_I`) exists only in leap years; `ADAR` (6) is Adar II then.
 - All-day events are UTC midnights in the provider (`model/EventDays.kt`).
+- Grid lines come from the container background showing through 0.5dp cell margins:
+  every cell background must be opaque and square.
 - Widget layouts may only use RemoteViews-safe views (LinearLayout, TextView...).
