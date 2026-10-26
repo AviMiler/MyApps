@@ -17,6 +17,8 @@ jobs:
             artifact: AgoraApp-debug-apk
           - dir: ClaudeCameraLauncher
             artifact: ClaudeCameraLauncher-debug-apk
+          - dir: HebrewCalendar
+            artifact: HebrewCalendar-debug-apk
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,6 +39,10 @@ jobs:
       - name: Build debug APK
         working-directory: ${{ matrix.app.dir }}
         run: ./gradlew assembleDebug --no-daemon
+
+      - name: Run unit tests
+        working-directory: ${{ matrix.app.dir }}
+        run: ./gradlew testDebugUnitTest --no-daemon
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4

@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">לוח שנה עברי</string>
+    <string name="widget_description">לוח חודשי עברי עם האירועים מיומן Google</string>
+    <string name="previous_month">החודש הקודם</string>
+    <string name="next_month">החודש הבא</string>
+    <string name="today">היום</string>
+    <string name="switch_to_gregorian">תצוגה לועזית</string>
+    <string name="switch_to_hebrew">תצוגה עברית</string>
+    <string name="sync_now">סנכרון</string>
+    <string name="sync_requested">נשלחה בקשת סנכרון ל-%d חשבונות Google</string>
+    <string name="sync_no_accounts">לא נמצא חשבון Google ביומן המכשיר. הוסיפו חשבון בהגדרות ← חשבונות.</string>
+    <string name="permission_banner">כדי להציג ולהוסיף אירועים מיומן Google יש לאשר גישה ליומן. הקישו כאן.</string>
+    <string name="permission_settings">הגישה ליומן נחסמה. הקישו כאן כדי לאשר אותה בהגדרות האפליקציה.</string>
+    <string name="no_events">אין אירועים ביום זה</string>
+    <string name="all_day">כל היום</string>
+    <string name="add_event">הוספת אירוע ליומן Google</string>
+    <string name="event_title_hint">כותרת האירוע</string>
+    <string name="calendar_label">יומן</string>
+    <string name="all_day_checkbox">אירוע של יום שלם</string>
+    <string name="start_time">שעת התחלה: %s</string>
+    <string name="repeat_hebrew_yearly">חזרה שנתית לפי התאריך העברי (%d שנים)</string>
+    <string name="save">שמירה</string>
+    <string name="cancel">ביטול</string>
+    <string name="no_writable_calendars">לא נמצא יומן שאפשר לכתוב אליו. ודאו שחשבון Google מסונכרן ביומן המכשיר.</string>
+    <string name="title_required">יש להזין כותרת</string>
+    <string name="events_added">נוספו %d אירועים ליומן</string>
+    <string name="events_failed">שמירת האירוע נכשלה</string>
+    <string name="event_description">תאריך עברי: %s</string>
+</resources>
