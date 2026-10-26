@@ -33,6 +33,10 @@
 ## הוספת הווידג'ט
 לחיצה ארוכה על מסך הבית ← ווידג'טים ← "לוח שנה עברי" ← גררו למסך.
 
+## הורדה לטלפון
+קישור הורדה ישיר לגרסה האחרונה (נפתח גם בטלפון, בלי התחברות):
+https://github.com/AviMiler/MyApps/releases/download/hebrew-calendar-latest/HebrewCalendar.apk
+
 ## בנייה
 - Android Studio: פתחו את התיקייה `HebrewCalendar/` ← Build ← Build APK(s).
 - או דרך ה-workflow המשותף בריפו, שבונה APK debug ומריץ את בדיקות היחידה.

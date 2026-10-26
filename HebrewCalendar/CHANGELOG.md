@@ -1,6 +1,8 @@
 # Changelog
 
 ## 2026-10-26
+- Added: CI publishes the APK to the `hebrew-calendar-latest` Release for a direct
+  phone download link (Actions artifacts need a desktop login).
 - Changed: grid lines between day cells in the app and the widget (cells are opaque
   tiles on a `grid_line`-colored container; highlight drawables are now square).
 - Added: Hebrew calendar app with Hebrew/Gregorian month views, Jewish holidays,
