@@ -60,4 +60,6 @@
     <string name="section_zmanim">זמני היום</string>
     <string name="zmanim_city">עיר</string>
     <string name="zmanim_city_hint">לחישוב הזמנים ולשעת הדלקת הנרות לפי מנהג המקום</string>
+    <string name="switch_to_gregorian">מעבר לתצוגה לועזית</string>
+    <string name="switch_to_hebrew">מעבר לתצוגה עברית</string>
 </resources>

@@ -99,6 +99,8 @@ class MainActivity : Activity() {
         settings = preferences.display
         scheme = ThemeController.scheme(this, settings)
         SystemBars.apply(this, scheme)
+        // The widget's mode button may have switched Hebrew/Gregorian while we were away.
+        if (page.mode != preferences.viewMode) page = MonthPage.containing(selectedDate, preferences.viewMode)
         startObservingCalendar()
         render()
         reload()

@@ -19,7 +19,7 @@ by the shared `.github/workflows/build-apk.yml`.
   no Android SDK; sources were type-checked against the Android 14 framework).
 
 ## Last Changes
-- 2026-10-27 — Zmanim in the day sheet (`hebrew/Zmanim.kt`, city in settings); event titles in the widget. See CHANGELOG.md.
+- 2026-10-27 — Zmanim in the day sheet (`hebrew/Zmanim.kt`, city in settings); event titles and a Hebrew/Gregorian button in the widget. See CHANGELOG.md.
 - 2026-10-27 — Material 3 Expressive redesign, customization screen, configurable Hebrew-date repeat years, AndroidX removed. See CHANGELOG.md.
 - 2026-10-26 — Grid lines between day cells (`ui/CellStyle.kt`, cell layouts/drawables, `grid_line` color).
 - 2026-10-26 — Created the app (all files). See CHANGELOG.md.

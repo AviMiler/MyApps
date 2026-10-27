@@ -55,6 +55,32 @@
                     android:textSize="13sp" />
             </LinearLayout>
 
+            <!-- Switches between Hebrew and Gregorian months; shows the mode it switches to. -->
+            <FrameLayout
+                android:id="@+id/widget_mode"
+                android:layout_width="wrap_content"
+                android:layout_height="24dp"
+                android:layout_marginEnd="2dp">
+
+                <ImageView
+                    android:id="@+id/widget_mode_bg"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:importantForAccessibility="no"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/shape_pill" />
+
+                <TextView
+                    android:id="@+id/widget_mode_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:paddingHorizontal="10dp"
+                    android:textSize="11sp" />
+            </FrameLayout>
+
             <ImageView
                 android:id="@+id/widget_previous"
                 android:layout_width="32dp"

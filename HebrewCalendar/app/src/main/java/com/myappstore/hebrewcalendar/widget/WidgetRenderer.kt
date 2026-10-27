@@ -12,6 +12,7 @@ import android.widget.RemoteViews
 import com.myappstore.hebrewcalendar.R
 import com.myappstore.hebrewcalendar.calendar.CalendarRepository
 import com.myappstore.hebrewcalendar.hebrew.MonthPage
+import com.myappstore.hebrewcalendar.hebrew.ViewMode
 import com.myappstore.hebrewcalendar.model.DayCell
 import com.myappstore.hebrewcalendar.model.MonthModel
 import com.myappstore.hebrewcalendar.settings.AppPreferences
@@ -55,9 +56,15 @@ object WidgetRenderer {
         colors.tint(views, R.id.widget_add_bg) { it.primary }
         colors.tint(views, R.id.widget_add_icon) { it.onPrimary }
         WEEKDAY_IDS.forEach { id -> colors.text(views, id) { it.onSurfaceVariant } }
+        val toGregorian = preferences.viewMode == ViewMode.HEBREW
+        views.setTextViewText(R.id.widget_mode_label, context.getString(if (toGregorian) R.string.mode_gregorian else R.string.mode_hebrew))
+        views.setContentDescription(R.id.widget_mode, context.getString(if (toGregorian) R.string.switch_to_gregorian else R.string.switch_to_hebrew))
+        colors.tint(views, R.id.widget_mode_bg) { it.secondaryContainer }
+        colors.text(views, R.id.widget_mode_label) { it.onSecondaryContainer }
 
         views.setOnClickPendingIntent(R.id.widget_previous, MonthWidgetProvider.broadcast(context, MonthWidgetProvider.ACTION_PREVIOUS, widgetId))
         views.setOnClickPendingIntent(R.id.widget_next, MonthWidgetProvider.broadcast(context, MonthWidgetProvider.ACTION_NEXT, widgetId))
+        views.setOnClickPendingIntent(R.id.widget_mode, MonthWidgetProvider.broadcast(context, MonthWidgetProvider.ACTION_TOGGLE_MODE, widgetId))
         views.setOnClickPendingIntent(R.id.widget_titles, MonthWidgetProvider.broadcast(context, MonthWidgetProvider.ACTION_TODAY, widgetId))
         views.setOnClickPendingIntent(R.id.widget_add, openApp(context, today, addEvent = true))
 

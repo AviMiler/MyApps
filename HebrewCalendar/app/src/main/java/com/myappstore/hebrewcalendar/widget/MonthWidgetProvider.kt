@@ -8,11 +8,13 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import com.myappstore.hebrewcalendar.hebrew.ViewMode
 import com.myappstore.hebrewcalendar.settings.AppPreferences
 
 /**
  * The monthly home-screen widget. Each widget instance remembers how many months
  * it was scrolled with its arrows; tapping the title returns to the current month.
+ * The mode button switches Hebrew/Gregorian months for the app and all widgets.
  */
 class MonthWidgetProvider : AppWidgetProvider() {
 
@@ -36,6 +38,7 @@ class MonthWidgetProvider : AppWidgetProvider() {
         super.onReceive(context, intent)
         when (intent.action) {
             ACTION_PREVIOUS, ACTION_NEXT, ACTION_TODAY -> navigate(context, intent)
+            ACTION_TOGGLE_MODE -> toggleMode(context)
             ACTION_REFRESH, Intent.ACTION_TIME_CHANGED, Intent.ACTION_TIMEZONE_CHANGED,
             Intent.ACTION_LOCALE_CHANGED -> refreshAll(context)
         }
@@ -54,10 +57,20 @@ class MonthWidgetProvider : AppWidgetProvider() {
         WidgetRenderer.render(context, AppWidgetManager.getInstance(context), widgetId)
     }
 
+    /** Month offsets count months of the old mode, so every widget goes back to the current month. */
+    private fun toggleMode(context: Context) {
+        val preferences = AppPreferences(context)
+        preferences.viewMode = if (preferences.viewMode == ViewMode.HEBREW) ViewMode.GREGORIAN else ViewMode.HEBREW
+        val manager = AppWidgetManager.getInstance(context)
+        manager.getAppWidgetIds(ComponentName(context, MonthWidgetProvider::class.java)).forEach { preferences.setWidgetOffset(it, 0) }
+        refreshAll(context)
+    }
+
     companion object {
         const val ACTION_PREVIOUS = "com.myappstore.hebrewcalendar.widget.PREVIOUS"
         const val ACTION_NEXT = "com.myappstore.hebrewcalendar.widget.NEXT"
         const val ACTION_TODAY = "com.myappstore.hebrewcalendar.widget.TODAY"
+        const val ACTION_TOGGLE_MODE = "com.myappstore.hebrewcalendar.widget.TOGGLE_MODE"
         const val ACTION_REFRESH = "com.myappstore.hebrewcalendar.widget.REFRESH"
 
         /** Redraws every placed widget, e.g. after events or settings changed. */

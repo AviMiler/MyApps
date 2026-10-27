@@ -8,6 +8,8 @@
 - Changed: the widget shows event titles as colored chips (plus the holiday tag and "+N"),
   as many lines as fit its current height; dots remain when titles are off or there is no room.
   Resizing the widget redraws it.
+- Added: a small עברי/לועזי button in the widget header that switches the view mode for the
+  app and all widgets (each widget returns to the current month).
 
 ## 2026-10-27
 - Changed: redesigned in Android's Material 3 Expressive style: top app bar, connected

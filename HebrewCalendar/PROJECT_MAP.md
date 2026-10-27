@@ -42,19 +42,19 @@ Paths under `app/src/main/java/com/myappstore/hebrewcalendar/` are shortened to 
 | `…/ui/components/PaletteSwatch.kt` | Color option tile like Android's "Wallpaper & style". |
 | `…/ui/components/SegmentedButtons.kt` | Material 3 Expressive connected button group. |
 | `…/widget/CalendarChangeJobService.kt` | Job that redraws widgets on calendar changes. |
-| `…/widget/MonthWidgetProvider.kt` | AppWidgetProvider: navigation actions, resize redraw, refresh entry point. |
+| `…/widget/MonthWidgetProvider.kt` | AppWidgetProvider: navigation and mode-toggle actions, resize redraw, refresh entry point. |
 | `…/widget/WidgetColors.kt` | Applies color roles to RemoteViews (light+dark on Android 12+). |
 | `…/widget/WidgetRefreshScheduler.kt` | Midnight alarm + calendar content-trigger job. |
 | `…/widget/WidgetRenderer.kt` | Builds the widget RemoteViews (nested rows/cells, event-title chips sized to the widget). |
 | `app/src/main/res/layout/activity_main.xml` | Main screen structure (colors set at runtime). |
 | `app/src/main/res/layout/dialog_add_event.xml` | Add-event dialog body (incl. repeat-years row). |
-| `app/src/main/res/layout/widget_month.xml` | Widget root: tinted background, header, weekdays, grid container. |
+| `app/src/main/res/layout/widget_month.xml` | Widget root: tinted background, header (incl. mode button), weekdays, grid container. |
 | `app/src/main/res/layout/widget_week_row.xml` | Widget week row (cells added at runtime). |
 | `app/src/main/res/layout/widget_day_cell.xml` | Widget day cell: today shape, number, secondary date, chip container, dots. |
 | `app/src/main/res/layout/widget_event_chip.xml` | One event title / holiday / "+N" line in a widget cell. |
 | `app/src/main/res/xml/month_widget_info.xml` | Widget metadata (size, update period). |
 | `app/src/main/res/drawable/ic_*.xml` | Material icons (white, tinted at runtime). |
-| `app/src/main/res/drawable/shape_*.xml` | Today markers: cookie, circle, square, underline. |
+| `app/src/main/res/drawable/shape_*.xml` | Today markers: cookie, circle, square, underline; `shape_pill` for the widget mode button. |
 | `app/src/main/res/drawable/widget_shape.xml` | Widget background (tinted via color filter). |
 | `app/src/main/res/values*/` | Hebrew strings, first-frame colors, DeviceDefault theme. |
 | `app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml` | Adaptive launcher icon. |
