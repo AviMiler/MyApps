@@ -10,6 +10,8 @@ push, ומעלה כל APK כ-artifact נפרד.
 - [`AgoraApp/`](AgoraApp/) — דפדפן-קיוסק נעול לאתר agora.co.il בלבד.
 - [`ClaudeCameraLauncher/`](ClaudeCameraLauncher/) — אפליקציית שיגור שפותחת
   מיד את אפליקציית Claude (ראו את ה-README של האפליקציה למגבלות).
+- [`HebrewCalendar/`](HebrewCalendar/) — לוח שנה עברי עם חגים, סנכרון ליומן Google
+  וווידג'ט חודשי למסך הבית.
 
 ## הוספת אפליקציה חדשה
 צרו תיקייה חדשה בשורש הריפו עם פרויקט Gradle עצמאי (כולל `gradlew`,

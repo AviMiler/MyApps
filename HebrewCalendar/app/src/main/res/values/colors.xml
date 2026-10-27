@@ -1,0 +1,5 @@
+<resources>
+    <!-- Only for the first frame and the launcher icon; screens are colored at runtime. -->
+    <color name="window_background">#FFF8F9FF</color>
+    <color name="launcher_background">#FF36618E</color>
+</resources>

@@ -7,6 +7,10 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+# contents: write lets the release step attach APKs to a GitHub Release.
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -17,6 +21,11 @@ jobs:
             artifact: AgoraApp-debug-apk
           - dir: ClaudeCameraLauncher
             artifact: ClaudeCameraLauncher-debug-apk
+          - dir: HebrewCalendar
+            artifact: HebrewCalendar-debug-apk
+            # Also published to a fixed Release so the APK has a direct download
+            # link that works on a phone (Actions artifacts need a desktop login).
+            release_tag: hebrew-calendar-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -38,8 +47,29 @@ jobs:
         working-directory: ${{ matrix.app.dir }}
         run: ./gradlew assembleDebug --no-daemon
 
+      - name: Run unit tests
+        working-directory: ${{ matrix.app.dir }}
+        run: ./gradlew testDebugUnitTest --no-daemon
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.app.artifact }}
           path: ${{ matrix.app.dir }}/app/build/outputs/apk/debug/*.apk
+
+      - name: Name APK for the Release
+        if: matrix.app.release_tag && github.event_name != 'pull_request'
+        run: |
+          cp ${{ matrix.app.dir }}/app/build/outputs/apk/debug/app-debug.apk ${{ matrix.app.dir }}.apk
+
+      - name: Upload APK to Release
+        if: matrix.app.release_tag && github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ matrix.app.release_tag }}
+          target_commitish: ${{ github.sha }}
+          name: ${{ matrix.app.dir }} (latest build)
+          body: |
+            Latest debug build of ${{ matrix.app.dir }} from commit ${{ github.sha }}.
+            Download ${{ matrix.app.dir }}.apk below and install it on the phone.
+          files: ${{ matrix.app.dir }}.apk
