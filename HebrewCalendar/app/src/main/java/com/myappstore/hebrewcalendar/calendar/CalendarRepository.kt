@@ -13,7 +13,6 @@ import android.provider.CalendarContract.Calendars
 import android.provider.CalendarContract.Events
 import android.provider.CalendarContract.Instances
 import android.util.Log
-import androidx.core.content.ContextCompat
 import com.myappstore.hebrewcalendar.model.CalendarEvent
 import com.myappstore.hebrewcalendar.model.EventDays
 import com.myappstore.hebrewcalendar.model.WritableCalendar
@@ -50,7 +49,7 @@ class CalendarRepository(private val context: Context) {
             .build()
         val projection = arrayOf(
             Instances.EVENT_ID, Instances.TITLE, Instances.BEGIN, Instances.END,
-            Instances.ALL_DAY, Instances.DISPLAY_COLOR, Instances.CALENDAR_DISPLAY_NAME
+            Instances.ALL_DAY, Instances.DISPLAY_COLOR, Instances.CALENDAR_DISPLAY_NAME, Instances.EVENT_LOCATION
         )
         val events = mutableListOf<CalendarEvent>()
         try {
@@ -63,7 +62,8 @@ class CalendarRepository(private val context: Context) {
                         endMillis = cursor.getLong(3),
                         isAllDay = cursor.getInt(4) == 1,
                         color = cursor.getInt(5),
-                        calendarName = cursor.getString(6).orEmpty()
+                        calendarName = cursor.getString(6).orEmpty(),
+                        location = cursor.getString(7).orEmpty()
                     )
                 }
             }
@@ -153,7 +153,7 @@ class CalendarRepository(private val context: Context) {
     }
 
     private fun isGranted(permission: String): Boolean =
-        ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+        context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
 
     private companion object {
         const val TAG = "CalendarRepository"

@@ -1,5 +1,5 @@
 # Agent Context
-_Last updated: 2026-10-26 after initial version of the app_
+_Last updated: 2026-10-27 after the Material 3 redesign + customization_
 
 ## What This Project Is
 An Android Hebrew-calendar app (Hebrew UI, RTL) for one user. It shows a month
@@ -18,6 +18,7 @@ by the shared `.github/workflows/build-apk.yml`.
   no Android SDK; sources were type-checked against the Android 14 framework).
 
 ## Last Changes
+- 2026-10-27 — Material 3 Expressive redesign, customization screen, configurable Hebrew-date repeat years, AndroidX removed. See CHANGELOG.md.
 - 2026-10-26 — Grid lines between day cells (`ui/CellStyle.kt`, cell layouts/drawables, `grid_line` color).
 - 2026-10-26 — Created the app (all files). See CHANGELOG.md.
 
@@ -30,14 +31,18 @@ by the shared `.github/workflows/build-apk.yml`.
 - `hebrew/` and `model/` are pure Kotlin (java.time only) and unit tested on the JVM;
   keep Android imports out of them.
 - All calendar-provider I/O goes through `calendar/CalendarRepository.kt`.
-- `model/MonthModel.kt` + `ui/CellStyle.kt` define what a day cell shows; both the
-  app grid (`ui/MonthGridBinder.kt`) and the widget (`widget/WidgetRenderer.kt`) use them.
-- Settings shared by app and widget live in `settings/AppPreferences.kt`.
+- `model/MonthModel.kt` defines what a day cell holds; the app grid (`ui/MonthGridRenderer.kt`)
+  and the widget (`widget/WidgetRenderer.kt`) draw it.
+- No XML colors: every screen is colored at runtime from `theme/ColorScheme` resolved by
+  `theme/ThemeController.kt` (wallpaper palette on Android 12+, or `theme/PresetSchemes.kt`).
+- Display options are `settings/DisplaySettings.kt`, persisted by `settings/AppPreferences.kt`.
+- Widget colors go through `widget/WidgetColors.kt` (light+dark pair on Android 12+).
+- No AndroidX: framework `Activity`, DeviceDefault theme/dialogs, custom M3 components in `ui/components/`.
 
 ## Next Steps
 - [ ] Run on a device; check the widget at several sizes and in dark mode.
 - [ ] Optional: weekly Torah portion, candle-lighting times (needs location), diaspora mode.
-- [ ] Optional: split permission handling out of `MainActivity.kt` (~225 lines).
+- [ ] Optional: a draggable bottom sheet; month/year picker in Hebrew dates.
 
 ## Gotchas / Watch Out
 - Do NOT switch to `android.icu.util.HebrewCalendar`: it gets Rosh Hashana 5807
@@ -45,5 +50,6 @@ by the shared `.github/workflows/build-apk.yml`.
 - Month index 5 (`ADAR_I`) exists only in leap years; `ADAR` (6) is Adar II then.
 - All-day events are UTC midnights in the provider (`model/EventDays.kt`).
 - Grid lines come from the container background showing through 0.5dp cell margins:
-  every cell background must be opaque and square.
+  every cell background must be opaque.
+- Layouts are RTL (`layoutDirection=rtl`); corner/arrow logic assumes it.
 - Widget layouts may only use RemoteViews-safe views (LinearLayout, TextView...).

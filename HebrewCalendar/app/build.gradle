@@ -32,9 +32,6 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.core:core-ktx:1.13.1'
-    implementation 'androidx.appcompat:appcompat:1.7.0'
-
     testImplementation 'junit:junit:4.13.2'
     // Reference implementation the Hebrew date arithmetic is checked against.
     testImplementation 'com.ibm.icu:icu4j:75.1'

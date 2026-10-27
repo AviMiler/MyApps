@@ -20,17 +20,18 @@ data class DayCell(
     val isToday: Boolean,
     /** Shabbat or a Yom Tov - drawn in the rest-day color. */
     val isRestDay: Boolean,
-    val eventCount: Int
+    /** This day's events, all-day first (see EventDays). */
+    val events: List<CalendarEvent>
 )
 
 /** Builds the cell rows of a [MonthPage]. */
 object MonthModel {
 
     /** @return Sunday-first weeks; null entries are padding outside the month. */
-    fun build(page: MonthPage, today: LocalDate, eventCounts: Map<LocalDate, Int>): List<List<DayCell?>> {
+    fun build(page: MonthPage, today: LocalDate, events: Map<LocalDate, List<CalendarEvent>>): List<List<DayCell?>> {
         val holidays = JewishHolidays.between(page.firstDay, page.lastDay)
         return page.weeks().map { week ->
-            week.map { date -> date?.let { cellFor(it, page.mode, today, holidays[it].orEmpty(), eventCounts[it] ?: 0) } }
+            week.map { date -> date?.let { cellFor(it, page.mode, today, holidays[it].orEmpty(), events[it].orEmpty()) } }
         }
     }
 
@@ -39,7 +40,7 @@ object MonthModel {
         mode: ViewMode,
         today: LocalDate,
         holidays: List<Holiday>,
-        eventCount: Int
+        events: List<CalendarEvent>
     ): DayCell {
         val hebrewDay = HebrewNumerals.format(HebrewDate.of(date).day)
         val gregorianDay = date.dayOfMonth.toString()
@@ -51,7 +52,7 @@ object MonthModel {
             holiday = holidays.firstOrNull { it.isYomTov } ?: holidays.firstOrNull(),
             isToday = date == today,
             isRestDay = date.dayOfWeek == DayOfWeek.SATURDAY || holidays.any { it.isYomTov },
-            eventCount = eventCount
+            events = events
         )
     }
 }

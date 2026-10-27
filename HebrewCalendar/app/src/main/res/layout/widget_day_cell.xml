@@ -3,34 +3,42 @@
     android:id="@+id/widget_cell"
     android:layout_width="0dp"
     android:layout_height="match_parent"
-    android:layout_margin="0.5dp"
-    android:background="@drawable/widget_cell_default"
+    android:layout_marginTop="0.5dp"
+    android:layout_marginEnd="0.5dp"
     android:layout_weight="1"
     android:gravity="center"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/widget_cell_primary"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="@color/text_primary"
-        android:textSize="13sp"
-        android:textStyle="bold" />
+    <FrameLayout
+        android:layout_width="24dp"
+        android:layout_height="24dp">
+
+        <ImageView
+            android:id="@+id/widget_cell_shape"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:importantForAccessibility="no"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/widget_cell_number"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:textSize="12.5sp" />
+    </FrameLayout>
 
     <TextView
         android:id="@+id/widget_cell_secondary"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/text_secondary"
         android:textSize="8sp" />
 
     <TextView
-        android:id="@+id/widget_cell_marker"
-        android:layout_width="match_parent"
+        android:id="@+id/widget_cell_dots"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:ellipsize="end"
-        android:gravity="center"
-        android:maxLines="1"
-        android:textColor="@color/holiday"
-        android:textSize="7sp" />
+        android:includeFontPadding="false"
+        android:textSize="6sp" />
 </LinearLayout>

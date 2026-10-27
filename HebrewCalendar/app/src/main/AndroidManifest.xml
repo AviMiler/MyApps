@@ -23,6 +23,11 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".ui.SettingsActivity"
+            android:exported="false"
+            android:label="@string/customize" />
+
         <receiver
             android:name=".widget.MonthWidgetProvider"
             android:exported="false">

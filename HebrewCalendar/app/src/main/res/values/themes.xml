@@ -1,14 +1,7 @@
 <resources>
-    <style name="Theme.HebrewCalendar" parent="Theme.AppCompat.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/accent</item>
-        <item name="colorPrimaryDark">@color/background</item>
-        <item name="colorAccent">@color/accent</item>
-        <item name="android:windowBackground">@color/background</item>
-        <item name="android:statusBarColor">@color/background</item>
-    </style>
-
-    <style name="HeaderButton" parent="Widget.AppCompat.Button.Borderless.Colored">
-        <item name="android:minWidth">48dp</item>
-        <item name="android:textSize">14sp</item>
+    <!-- Framework (DeviceDefault) theme: dialogs and pickers get the phone's native look.
+         All screen colors come from theme/ColorScheme at runtime. -->
+    <style name="Theme.HebrewCalendar" parent="android:Theme.DeviceDefault.Light.NoActionBar">
+        <item name="android:windowBackground">@color/window_background</item>
     </style>
 </resources>

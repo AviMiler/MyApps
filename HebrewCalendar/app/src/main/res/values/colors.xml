@@ -1,14 +1,5 @@
 <resources>
-    <color name="background">#FFFDF8F0</color>
-    <color name="surface">#FFFFFFFF</color>
-    <color name="text_primary">#FF1F2933</color>
-    <color name="text_secondary">#FF6B7280</color>
-    <color name="accent">#FF1E4E8C</color>
-    <color name="accent_soft">#FFDCE7F7</color>
-    <color name="rest_day">#FFB42318</color>
-    <color name="holiday">#FF8A5A00</color>
-    <color name="selected_outline">#FF1E4E8C</color>
-    <color name="grid_line">#FFE2DCD2</color>
-    <color name="widget_background">#F2FFFFFF</color>
-    <color name="launcher_background">#FF1E4E8C</color>
+    <!-- Only for the first frame and the launcher icon; screens are colored at runtime. -->
+    <color name="window_background">#FFF8F9FF</color>
+    <color name="launcher_background">#FF36618E</color>
 </resources>

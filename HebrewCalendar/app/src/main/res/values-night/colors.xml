@@ -1,13 +1,3 @@
 <resources>
-    <color name="background">#FF121417</color>
-    <color name="surface">#FF1C1F24</color>
-    <color name="text_primary">#FFF1F3F5</color>
-    <color name="text_secondary">#FF9AA3AE</color>
-    <color name="accent">#FF8DB4F0</color>
-    <color name="accent_soft">#FF24364F</color>
-    <color name="rest_day">#FFFF8A80</color>
-    <color name="holiday">#FFF2C46D</color>
-    <color name="selected_outline">#FF8DB4F0</color>
-    <color name="grid_line">#FF33373D</color>
-    <color name="widget_background">#F21C1F24</color>
+    <color name="window_background">#FF111418</color>
 </resources>

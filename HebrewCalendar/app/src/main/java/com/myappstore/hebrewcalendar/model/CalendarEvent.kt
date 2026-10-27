@@ -14,7 +14,8 @@ data class CalendarEvent(
     val endMillis: Long,
     val isAllDay: Boolean,
     val color: Int,
-    val calendarName: String
+    val calendarName: String,
+    val location: String = ""
 )
 
 /** A calendar the user may add events to, e.g. their primary Google calendar. */

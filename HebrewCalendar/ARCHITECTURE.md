@@ -1,5 +1,5 @@
 # Architecture
-_Last updated: 2026-10-26_
+_Last updated: 2026-10-27_
 
 ## Overview
 A single-activity View-based app plus an AppWidgetProvider. Pure-Kotlin calendar
@@ -11,7 +11,7 @@ RemoteViews. Google Calendar data comes from Android's calendar provider.
 2. `CalendarRepository.eventsByDay(page)` queries `CalendarContract.Instances`
    (recurring events already expanded) and `EventDays` groups them by day.
 3. `MonthModel.build(page, today, counts)` adds Hebrew labels and holidays → `DayCell`s.
-4. `MonthGridBinder` (app) or `WidgetRenderer` (widget) draws cells using `CellStyle`.
+4. `MonthGridRenderer` (app) or `WidgetRenderer` (widget) draws cells with the user's `DisplaySettings` and `ColorScheme`.
 5. Changes: the app observes `CalendarContract.CONTENT_URI` while visible; widgets
    are redrawn by `CalendarChangeJobService` (content-trigger job), a midnight alarm,
    time/zone broadcasts, and `updatePeriodMillis` (1 h).
@@ -26,7 +26,11 @@ RemoteViews. Google Calendar data comes from Android's calendar provider.
 | Holidays per Israel custom | The user is in Israel (Hebrew UI). One-day Yom Tov, Simchat Torah on 22 Tishrei. |
 | Yearly-by-Hebrew-date = 10 separate events | Google Calendar RRULEs cannot follow the Hebrew calendar. |
 | Widget grid via nested `RemoteViews.addView` | Simpler than a RemoteViewsService/collection, and allows per-day click intents. |
-| Views + AppCompat, no Compose | Matches the other apps in the repo and keeps dependencies minimal. |
+| Framework Views, no AppCompat/Material library | Zero dependencies; DeviceDefault dialogs look native; everything type-checks against the platform alone. |
+| Runtime `ColorScheme` instead of XML themes | Lets the user pick palette/light/dark live, and the widget use the same colors. |
+| Material You from `@android:color/system_accent*` | The wallpaper palette without the Material library; presets are Material 3 tonal schemes. |
+| Custom `M3Switch`, `PaletteSwatch`, `SegmentedButtons` | Material 3 Expressive look without the library. |
+| Widget light+dark via `RemoteViews.setColorInt` (API 31+) | Follows night mode without a re-render. |
 
 ## Patterns
 - Pure core: `hebrew/` and `model/` never import Android.
