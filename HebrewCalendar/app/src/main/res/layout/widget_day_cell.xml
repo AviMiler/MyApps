@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Widget day cell: number + secondary date on top, then event-title chips (or dots). -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_cell"
     android:layout_width="0dp"
@@ -6,34 +7,53 @@
     android:layout_marginTop="0.5dp"
     android:layout_marginEnd="0.5dp"
     android:layout_weight="1"
-    android:gravity="center"
-    android:orientation="vertical">
+    android:gravity="center_horizontal|top"
+    android:orientation="vertical"
+    android:paddingHorizontal="1dp"
+    android:paddingTop="1dp">
 
-    <FrameLayout
-        android:layout_width="24dp"
-        android:layout_height="24dp">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
-        <ImageView
-            android:id="@+id/widget_cell_shape"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:importantForAccessibility="no"
-            android:visibility="gone" />
+        <FrameLayout
+            android:layout_width="22dp"
+            android:layout_height="22dp">
+
+            <ImageView
+                android:id="@+id/widget_cell_shape"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:importantForAccessibility="no"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/widget_cell_number"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:textSize="12sp" />
+        </FrameLayout>
 
         <TextView
-            android:id="@+id/widget_cell_number"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:fontFamily="sans-serif-medium"
-            android:gravity="center"
-            android:textSize="12.5sp" />
-    </FrameLayout>
+            android:id="@+id/widget_cell_secondary"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="end"
+            android:maxLines="1"
+            android:textSize="8sp" />
+    </LinearLayout>
 
-    <TextView
-        android:id="@+id/widget_cell_secondary"
-        android:layout_width="wrap_content"
+    <!-- Event and holiday chips are added at runtime (widget_event_chip). -->
+    <LinearLayout
+        android:id="@+id/widget_cell_events"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="8sp" />
+        android:orientation="vertical" />
 
     <TextView
         android:id="@+id/widget_cell_dots"

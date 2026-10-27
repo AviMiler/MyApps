@@ -1,5 +1,5 @@
 # Agent Context
-_Last updated: 2026-10-27 after the Material 3 redesign + customization_
+_Last updated: 2026-10-27 after adding zmanim and widget event titles_
 
 ## What This Project Is
 An Android Hebrew-calendar app (Hebrew UI, RTL) for one user. It shows a month
@@ -12,12 +12,14 @@ by the shared `.github/workflows/build-apk.yml`.
 - ✅ Working: Hebrew date arithmetic (checked against ICU4J for 1900-2100), gematria,
   holidays with postponements, month pages (Hebrew/Gregorian), event reading via
   `CalendarContract.Instances`, adding events (incl. yearly-by-Hebrew-date), manual
-  sync request, monthly widget with navigation, midnight + calendar-change refresh.
+  sync request, monthly widget with navigation and event-title chips, midnight +
+  calendar-change refresh, daily zmanim per chosen Israeli city in the day sheet.
 - 🚧 WIP: nothing in progress.
 - ❌ Known Issues: not yet run on a device/emulator (the session that wrote it had
   no Android SDK; sources were type-checked against the Android 14 framework).
 
 ## Last Changes
+- 2026-10-27 — Zmanim in the day sheet (`hebrew/Zmanim.kt`, city in settings); event titles in the widget. See CHANGELOG.md.
 - 2026-10-27 — Material 3 Expressive redesign, customization screen, configurable Hebrew-date repeat years, AndroidX removed. See CHANGELOG.md.
 - 2026-10-26 — Grid lines between day cells (`ui/CellStyle.kt`, cell layouts/drawables, `grid_line` color).
 - 2026-10-26 — Created the app (all files). See CHANGELOG.md.
@@ -41,7 +43,7 @@ by the shared `.github/workflows/build-apk.yml`.
 
 ## Next Steps
 - [ ] Run on a device; check the widget at several sizes and in dark mode.
-- [ ] Optional: weekly Torah portion, candle-lighting times (needs location), diaspora mode.
+- [ ] Optional: weekly Torah portion, diaspora mode, zmanim by GPS location / elevation.
 - [ ] Optional: a draggable bottom sheet; month/year picker in Hebrew dates.
 
 ## Gotchas / Watch Out
@@ -53,3 +55,6 @@ by the shared `.github/workflows/build-apk.yml`.
   every cell background must be opaque.
 - Layouts are RTL (`layoutDirection=rtl`); corner/arrow logic assumes it.
 - Widget layouts may only use RemoteViews-safe views (LinearLayout, TextView...).
+- Widget chip count comes from `OPTION_APPWIDGET_MAX_HEIGHT` and the dp constants at the
+  bottom of `WidgetRenderer`; keep them in sync with `widget_month.xml`/`widget_day_cell.xml`.
+- Zmanim are computed at sea level in `Asia/Jerusalem`; the city list is Israeli only.

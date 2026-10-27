@@ -1,6 +1,7 @@
 package com.myappstore.hebrewcalendar.ui
 
 import android.app.Activity
+import android.graphics.Typeface
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup.LayoutParams
@@ -8,9 +9,11 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.myappstore.hebrewcalendar.R
+import com.myappstore.hebrewcalendar.hebrew.City
 import com.myappstore.hebrewcalendar.hebrew.DateLabels
 import com.myappstore.hebrewcalendar.hebrew.HebrewDate
 import com.myappstore.hebrewcalendar.hebrew.JewishHolidays
+import com.myappstore.hebrewcalendar.hebrew.Zmanim
 import com.myappstore.hebrewcalendar.model.CalendarEvent
 import com.myappstore.hebrewcalendar.theme.ColorScheme
 import com.myappstore.hebrewcalendar.theme.Ui
@@ -22,8 +25,9 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 /**
- * The bottom sheet under the grid: the selected day's dates, holidays and events
- * as a Material 3 list (grouped items with large outer and small inner corners).
+ * The bottom sheet under the grid: the selected day's dates, holidays, events
+ * as a Material 3 list (grouped items with large outer and small inner corners)
+ * and the day's zmanim.
  */
 class DaySheetBinder(private val activity: Activity, private val onEventClick: (CalendarEvent) -> Unit) {
 
@@ -33,8 +37,10 @@ class DaySheetBinder(private val activity: Activity, private val onEventClick: (
     private val badge = activity.findViewById<TextView>(R.id.sheet_badge)
     private val holidays = activity.findViewById<TextView>(R.id.sheet_holidays)
     private val events = activity.findViewById<LinearLayout>(R.id.events_container)
+    private val zmanimTitle = activity.findViewById<TextView>(R.id.zmanim_title)
+    private val zmanim = activity.findViewById<LinearLayout>(R.id.zmanim_container)
 
-    fun bind(date: LocalDate, dayEvents: List<CalendarEvent>, canReadCalendar: Boolean, scheme: ColorScheme, scale: Float) {
+    fun bind(date: LocalDate, dayEvents: List<CalendarEvent>, canReadCalendar: Boolean, city: City, scheme: ColorScheme, scale: Float) {
         sheet.background = Ui.rounded(activity, scheme.surfaceContainerLow, 28f, 28f, 0f, 0f)
         activity.findViewById<View>(R.id.sheet_handle).background = Ui.rounded(activity, scheme.outline, 2f)
         title.text = DateLabels.fullHebrewDate(HebrewDate.of(date))
@@ -66,6 +72,35 @@ class DaySheetBinder(private val activity: Activity, private val onEventClick: (
             val params = LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
             params.topMargin = Ui.dp(activity, 2f)
             events.addView(eventItem(event, index, dayEvents.size, scheme, scale), params)
+        }
+        bindZmanim(date, city, scheme, scale)
+    }
+
+    /** One card with a row per zman: name at the start, time at the end. */
+    private fun bindZmanim(date: LocalDate, city: City, scheme: ColorScheme, scale: Float) {
+        zmanimTitle.text = activity.getString(R.string.zmanim_title, city.name)
+        zmanimTitle.setTextColor(scheme.primary)
+        zmanimTitle.textSp(14f, scale)
+        zmanim.removeAllViews()
+        zmanim.background = Ui.rounded(activity, scheme.cardColor, 20f)
+        zmanim.setPadding(Ui.dp(activity, 16f), Ui.dp(activity, 8f), Ui.dp(activity, 16f), Ui.dp(activity, 8f))
+        Zmanim.of(date, city).forEach { zman ->
+            val row = LinearLayout(activity).apply {
+                orientation = LinearLayout.HORIZONTAL
+                setPadding(0, Ui.dp(activity, 6f), 0, Ui.dp(activity, 6f))
+            }
+            row.addView(TextView(activity).apply {
+                text = zman.name
+                setTextColor(if (zman.isShabbatTime) scheme.tertiary else scheme.onSurface)
+                textSp(14f, scale)
+            }, LinearLayout.LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f))
+            row.addView(TextView(activity).apply {
+                text = zman.time?.format(TIME_FORMAT) ?: "—"
+                setTextColor(if (zman.isShabbatTime) scheme.tertiary else scheme.onSurfaceVariant)
+                typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+                textSp(14f, scale)
+            })
+            zmanim.addView(row)
         }
     }
 

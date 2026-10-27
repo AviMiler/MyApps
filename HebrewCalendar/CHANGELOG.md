@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-27 (zmanim, widget titles)
+- Added: the day's zmanim in the day sheet (`hebrew/Zmanim.kt`): dawn, misheyakir, sunrise,
+  latest Shema/Tefilla (MGA and GRA), chatzot, mincha gedola/ketana, plag, sunset, nightfall,
+  plus candle lighting on erev Shabbat/Yom Tov (by city custom) and the end of Shabbat/Yom Tov
+  (8.5° and Rabbeinu Tam). City picker under "זמני היום" in the customization screen.
+- Changed: the widget shows event titles as colored chips (plus the holiday tag and "+N"),
+  as many lines as fit its current height; dots remain when titles are off or there is no room.
+  Resizing the widget redraws it.
+
 ## 2026-10-27
 - Changed: redesigned in Android's Material 3 Expressive style: top app bar, connected
   Hebrew/Gregorian button group, Google-Calendar-like month grid (event titles as colored

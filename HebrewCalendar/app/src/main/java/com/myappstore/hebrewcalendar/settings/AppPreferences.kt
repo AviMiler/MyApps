@@ -2,6 +2,8 @@ package com.myappstore.hebrewcalendar.settings
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.myappstore.hebrewcalendar.hebrew.Cities
+import com.myappstore.hebrewcalendar.hebrew.City
 import com.myappstore.hebrewcalendar.hebrew.ViewMode
 
 /** Small persisted settings shared by the app screen and the widget. */
@@ -39,6 +41,11 @@ class AppPreferences(context: Context) {
             .putInt(KEY_TEXT_SCALE, value.textScaleIndex)
             .apply()
 
+    /** The city the day's zmanim are computed for. */
+    var zmanimCity: City
+        get() = Cities.named(prefs.getString(KEY_ZMANIM_CITY, null))
+        set(value) = prefs.edit().putString(KEY_ZMANIM_CITY, value.name).apply()
+
     /** Whether the calendar permission was requested at least once (to detect "don't ask again"). */
     var hasAskedCalendarPermission: Boolean
         get() = prefs.getBoolean(KEY_ASKED_PERMISSION, false)
@@ -68,5 +75,6 @@ class AppPreferences(context: Context) {
         const val KEY_HOLIDAYS = "show_holidays"
         const val KEY_GRID_LINES = "show_grid_lines"
         const val KEY_TEXT_SCALE = "text_scale_index"
+        const val KEY_ZMANIM_CITY = "zmanim_city"
     }
 }

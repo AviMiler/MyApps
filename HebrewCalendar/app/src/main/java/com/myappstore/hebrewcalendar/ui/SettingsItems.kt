@@ -6,6 +6,7 @@ import android.graphics.Typeface
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup.LayoutParams
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
@@ -108,6 +109,22 @@ class SettingsItems(private val context: Context, private val scheme: ColorSchem
             addView(texts, LinearLayout.LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f))
             addView(toggle)
             setOnClickListener { toggle.performClick() }
+        }
+    }
+
+    /** A tappable row showing [value] under [label], e.g. the zmanim city. */
+    fun valueRow(label: String, value: String, hint: String?, onClick: () -> Unit): View {
+        val texts = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+        texts.addView(text(label, 16f))
+        texts.addView(text(value, 14f, scheme.primary))
+        hint?.let { texts.addView(text(it, 13f, scheme.onSurfaceVariant)) }
+        return LinearLayout(context).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            minimumHeight = dp(64f)
+            setPadding(dp(16f), dp(10f), dp(16f), dp(10f))
+            addView(texts, LinearLayout.LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f))
+            addView(ImageView(context).apply { setImageDrawable(Ui.icon(context, R.drawable.ic_chevron_left, scheme.onSurfaceVariant)) })
+            setOnClickListener { onClick() }
         }
     }
 

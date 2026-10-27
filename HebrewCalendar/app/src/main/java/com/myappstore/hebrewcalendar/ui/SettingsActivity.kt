@@ -1,12 +1,14 @@
 package com.myappstore.hebrewcalendar.ui
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import com.myappstore.hebrewcalendar.R
+import com.myappstore.hebrewcalendar.hebrew.Cities
 import com.myappstore.hebrewcalendar.hebrew.MonthPage
 import com.myappstore.hebrewcalendar.model.MonthModel
 import com.myappstore.hebrewcalendar.settings.AppPreferences
@@ -21,7 +23,7 @@ import java.time.LocalDate
 
 /**
  * "התאמה אישית": colors, light/dark, today's marker, what the grid shows and
- * text size, laid out like Android's own Settings (grouped rounded lists).
+ * text size and the zmanim city, laid out like Android's own Settings (grouped rounded lists).
  * Every change is saved at once and the screen is rebuilt in the new colors.
  */
 class SettingsActivity : Activity() {
@@ -80,12 +82,30 @@ class SettingsActivity : Activity() {
 
         content.addView(items.section(getString(R.string.section_text)))
         content.addView(items.group(items.textSizeSlider(settings.textScaleIndex) { update(settings.copy(textScaleIndex = it)) }))
+
+        content.addView(items.section(getString(R.string.section_zmanim)))
+        content.addView(items.group(
+            items.valueRow(getString(R.string.zmanim_city), preferences.zmanimCity.name, getString(R.string.zmanim_city_hint), ::pickCity)
+        ))
     }
 
     private fun update(newSettings: DisplaySettings) {
         preferences.display = newSettings
         build()
         MonthWidgetProvider.refreshAll(this)
+    }
+
+    private fun pickCity() {
+        val current = Cities.ALL.indexOf(preferences.zmanimCity)
+        AlertDialog.Builder(this, SystemBars.dialogTheme(scheme))
+            .setTitle(R.string.zmanim_city)
+            .setSingleChoiceItems(Cities.ALL.map { it.name }.toTypedArray(), current) { dialog, which ->
+                preferences.zmanimCity = Cities.ALL[which]
+                dialog.dismiss()
+                build()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     private fun topBar(): View = LinearLayout(this).apply {

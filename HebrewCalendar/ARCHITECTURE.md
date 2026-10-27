@@ -30,6 +30,8 @@ RemoteViews. Google Calendar data comes from Android's calendar provider.
 | Runtime `ColorScheme` instead of XML themes | Lets the user pick palette/light/dark live, and the widget use the same colors. |
 | Material You from `@android:color/system_accent*` | The wallpaper palette without the Material library; presets are Material 3 tonal schemes. |
 | Custom `M3Switch`, `PaletteSwatch`, `SegmentedButtons` | Material 3 Expressive look without the library. |
+| Own solar calculation for zmanim (NOAA formulas) and a city list | No library and no location permission; Israeli printed calendars also compute at sea level per city. |
+| Widget chip count from the reported widget height | RemoteViews can't measure; `OPTION_APPWIDGET_MAX_HEIGHT` gives the cell height in dp. |
 | Widget light+dark via `RemoteViews.setColorInt` (API 31+) | Follows night mode without a re-render. |
 
 ## Patterns

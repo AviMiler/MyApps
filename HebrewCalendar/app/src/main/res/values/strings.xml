@@ -56,4 +56,8 @@
     <string name="show_holidays">חגים ומועדים</string>
     <string name="show_grid_lines">קווי הפרדה בין הימים</string>
     <string name="text_size">גודל</string>
+    <string name="zmanim_title">זמני היום · %s</string>
+    <string name="section_zmanim">זמני היום</string>
+    <string name="zmanim_city">עיר</string>
+    <string name="zmanim_city_hint">לחישוב הזמנים ולשעת הדלקת הנרות לפי מנהג המקום</string>
 </resources>

@@ -17,7 +17,9 @@ import com.myappstore.hebrewcalendar.model.MonthModel
 import com.myappstore.hebrewcalendar.settings.AppPreferences
 import com.myappstore.hebrewcalendar.settings.DisplaySettings
 import com.myappstore.hebrewcalendar.settings.TodayShape
+import com.myappstore.hebrewcalendar.theme.ColorScheme
 import com.myappstore.hebrewcalendar.theme.Ui
+import com.myappstore.hebrewcalendar.ui.HolidayNames
 import com.myappstore.hebrewcalendar.ui.MainActivity
 import java.time.LocalDate
 
@@ -25,6 +27,8 @@ import java.time.LocalDate
  * Builds the widget's RemoteViews in the app's Material 3 colors. The grid is
  * nested RemoteViews (a row layout per week, a cell layout per day), so no
  * RemoteViewsService is needed and every day can open the app on itself.
+ * Like the app grid, cells show the holiday and event titles as small chips, as
+ * many as fit the widget's current height.
  */
 object WidgetRenderer {
 
@@ -59,15 +63,17 @@ object WidgetRenderer {
 
         views.removeAllViews(R.id.widget_grid)
         colors.background(views, R.id.widget_grid) { if (settings.showGridLines) it.outlineVariant else it.surfaceContainer }
-        for (week in MonthModel.build(page, today, events)) {
+        val weeks = MonthModel.build(page, today, events)
+        val room = chipRoom(manager, widgetId, weeks.size)
+        for (week in weeks) {
             val row = RemoteViews(context.packageName, R.layout.widget_week_row)
-            week.forEach { cell -> row.addView(R.id.widget_week_row, cellViews(context, colors, settings, cell)) }
+            week.forEach { cell -> row.addView(R.id.widget_week_row, cellViews(context, colors, settings, cell, room)) }
             views.addView(R.id.widget_grid, row)
         }
         manager.updateAppWidget(widgetId, views)
     }
 
-    private fun cellViews(context: Context, colors: WidgetColors, settings: DisplaySettings, cell: DayCell?): RemoteViews {
+    private fun cellViews(context: Context, colors: WidgetColors, settings: DisplaySettings, cell: DayCell?, room: Int): RemoteViews {
         val views = RemoteViews(context.packageName, R.layout.widget_day_cell)
         colors.background(views, R.id.widget_cell) { it.surfaceContainer }
         if (cell == null) return views
@@ -93,10 +99,58 @@ object WidgetRenderer {
         } else {
             views.setViewVisibility(R.id.widget_cell_secondary, View.GONE)
         }
-        views.setTextViewText(R.id.widget_cell_dots, eventDots(cell))
+        chips(context, colors, settings, cell, room).forEach { views.addView(R.id.widget_cell_events, it) }
+        val titlesShown = settings.showEventTitles && room > (if (isHoliday) 1 else 0)
+        if (!titlesShown) views.setTextViewText(R.id.widget_cell_dots, eventDots(cell))
         views.setOnClickPendingIntent(R.id.widget_cell, openApp(context, cell.date, addEvent = false))
         return views
     }
+
+    /**
+     * How many chip lines fit under the day number, from the widget's current
+     * height (the launcher reports it in dp; MAX_HEIGHT is the portrait height).
+     */
+    private fun chipRoom(manager: AppWidgetManager, widgetId: Int, weeks: Int): Int {
+        val heightDp = manager.getAppWidgetOptions(widgetId)
+            .getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT).takeIf { it > 0 } ?: DEFAULT_HEIGHT_DP
+        val cellDp = (heightDp - CHROME_DP).toFloat() / weeks.coerceAtLeast(1)
+        return ((cellDp - NUMBER_ROW_DP) / CHIP_DP).toInt().coerceIn(0, MAX_CHIPS)
+    }
+
+    /** Holiday tag first, then event titles, with "+N" in the last line when they don't all fit. */
+    private fun chips(context: Context, colors: WidgetColors, settings: DisplaySettings, cell: DayCell, room: Int): List<RemoteViews> {
+        if (room == 0) return emptyList()
+        val chips = mutableListOf<RemoteViews>()
+        val holiday = cell.holiday?.takeIf { settings.showHolidays }
+        if (holiday != null) {
+            chips += chip(context, HolidayNames.short(holiday.name)) { views ->
+                colors.background(views, R.id.widget_chip) { if (holiday.isYomTov) it.errorContainer else it.tertiaryContainer }
+                colors.text(views, R.id.widget_chip) { if (holiday.isYomTov) it.onErrorContainer else it.onTertiaryContainer }
+            }
+        }
+        if (!settings.showEventTitles) return chips
+        val left = room - chips.size
+        if (left <= 0) return chips
+        // With a single free line, the first title beats a bare "+N".
+        val shown = if (cell.events.size > left && left > 1) left - 1 else minOf(cell.events.size, left)
+        cell.events.take(shown).forEach { event ->
+            chips += chip(context, event.title) { views ->
+                views.setInt(R.id.widget_chip, "setBackgroundColor", event.color)
+                views.setTextColor(R.id.widget_chip, WHITE)
+            }
+        }
+        val hidden = cell.events.size - shown
+        if (hidden > 0 && left > 1) {
+            chips += chip(context, "+$hidden") { views -> colors.text(views, R.id.widget_chip) { it.onSurfaceVariant } }
+        }
+        return chips
+    }
+
+    private fun chip(context: Context, label: String, style: (RemoteViews) -> Unit) =
+        RemoteViews(context.packageName, R.layout.widget_event_chip).apply {
+            setTextViewText(R.id.widget_chip, label)
+            style(this)
+        }
 
     /** Up to three dots in the events' own calendar colors. */
     private fun eventDots(cell: DayCell): CharSequence = SpannableStringBuilder().apply {
@@ -116,4 +170,13 @@ object WidgetRenderer {
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     }
+
+    private val WHITE = ColorScheme.opaque("FFFFFF")
+
+    /** Sizes in dp from widget_month / widget_day_cell, for [chipRoom]. */
+    private const val DEFAULT_HEIGHT_DP = 250
+    private const val CHROME_DP = 20 + 38 + 18 // vertical padding, header, weekday letters
+    private const val NUMBER_ROW_DP = 23f
+    private const val CHIP_DP = 12f
+    private const val MAX_CHIPS = 4
 }

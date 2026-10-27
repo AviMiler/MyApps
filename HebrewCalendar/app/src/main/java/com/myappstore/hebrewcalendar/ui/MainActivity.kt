@@ -152,7 +152,7 @@ class MainActivity : Activity() {
         renderer.bindWeekdays(findViewById(R.id.weekday_header))
         renderer.bindGrid(findViewById(R.id.month_grid), MonthModel.build(page, LocalDate.now(), eventsByDay), selectedDate, ::select)
         val canRead = repository.canRead()
-        sheet.bind(selectedDate, eventsByDay[selectedDate].orEmpty(), canRead, scheme, settings.textScale)
+        sheet.bind(selectedDate, eventsByDay[selectedDate].orEmpty(), canRead, preferences.zmanimCity, scheme, settings.textScale)
         findViewById<TextView>(R.id.permission_card).apply {
             visibility = if (canRead) View.GONE else View.VISIBLE
             setText(if (isPermissionBlocked()) R.string.permission_settings else R.string.permission_banner)

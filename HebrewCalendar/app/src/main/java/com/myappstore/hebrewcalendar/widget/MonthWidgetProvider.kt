@@ -7,6 +7,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
 import com.myappstore.hebrewcalendar.settings.AppPreferences
 
 /**
@@ -19,6 +20,10 @@ class MonthWidgetProvider : AppWidgetProvider() {
         widgetIds.forEach { WidgetRenderer.render(context, manager, it) }
         WidgetRefreshScheduler.schedule(context)
     }
+
+    /** Resizing changes how many event titles fit in a day. */
+    override fun onAppWidgetOptionsChanged(context: Context, manager: AppWidgetManager, widgetId: Int, newOptions: Bundle) =
+        WidgetRenderer.render(context, manager, widgetId)
 
     override fun onDeleted(context: Context, widgetIds: IntArray) {
         val preferences = AppPreferences(context)
