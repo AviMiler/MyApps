@@ -13,11 +13,15 @@ import android.os.Looper
 import android.provider.CalendarContract
 import android.provider.Settings
 import android.util.Log
-import android.transition.TransitionManager
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ValueAnimator
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.ViewGroup
+import android.view.animation.DecelerateInterpolator
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import com.myappstore.hebrewcalendar.R
@@ -58,6 +62,7 @@ class MainActivity : Activity() {
     /** Bumped on every load so a slow, outdated load never overwrites a newer one. */
     private var loadGeneration = 0
     private var isObservingCalendar = false
+    private var heightAnimator: ValueAnimator? = null
     /** Set by the widget's "+"; handled in onStart once colors are known. */
     private var pendingAddEvent = false
 
@@ -86,6 +91,7 @@ class MainActivity : Activity() {
         findViewById<View>(R.id.button_sync).setOnClickListener { syncNow() }
         findViewById<View>(R.id.button_settings).setOnClickListener { startActivity(Intent(this, SettingsActivity::class.java)) }
         bindSheetHandle()
+        findViewById<View>(R.id.sheet).apply { layoutParams = layoutParams.also { it.height = peekHeight() } }
         findViewById<View>(R.id.fab).setOnClickListener { addEvent(selectedDate) }
         findViewById<View>(R.id.permission_card).setOnClickListener { onPermissionCardClick() }
 
@@ -162,7 +168,7 @@ class MainActivity : Activity() {
         topBar.bind(page, scheme) { mode -> changeViewMode(mode) }
         val renderer = MonthGridRenderer(this, scheme, settings)
         renderer.bindWeekdays(findViewById(R.id.weekday_header))
-        renderer.bindGrid(findViewById(R.id.month_grid), MonthModel.build(page, LocalDate.now(), eventsByDay), selectedDate, ::select)
+        renderer.bindGrid(findViewById(R.id.month_grid), MonthModel.build(page, LocalDate.now(), eventsByDay), selectedDate, ::select, fill = true)
         val canRead = repository.canRead()
         sheet.bind(selectedDate, eventsByDay[selectedDate].orEmpty(), canRead, preferences.zmanimCity, scheme, settings.textScale)
         findViewById<TextView>(R.id.permission_card).apply {
@@ -237,18 +243,54 @@ class MainActivity : Activity() {
         }
     }
 
+    /** Closed day details take about a third of the screen (the grid gets the rest). */
+    private fun peekHeight(): Int =
+        (resources.displayMetrics.heightPixels * 0.30f).toInt().coerceIn(Ui.dp(this, 180f), Ui.dp(this, 280f))
+
+    /**
+     * Grows the day details over the grid (or shrinks them back) by animating their height,
+     * so the grid is covered smoothly instead of disappearing first.
+     */
     private fun setDayExpanded(expanded: Boolean) {
         if (sheet.isExpanded == expanded) return
+        val sheetView = findViewById<View>(R.id.sheet)
+        val top = findViewById<View>(R.id.top_area)
+        val full = findViewById<View>(R.id.column).height
+        val params = sheetView.layoutParams as LinearLayout.LayoutParams
+        val from = if (sheetView.height > 0) sheetView.height else peekHeight()
+        val to = if (expanded) full else peekHeight()
         sheet.isExpanded = expanded
-        TransitionManager.beginDelayedTransition(findViewById<ViewGroup>(R.id.root))
-        findViewById<View>(R.id.top_area).visibility = if (expanded) View.GONE else View.VISIBLE
-        findViewById<View>(R.id.sheet).apply {
-            (layoutParams as ViewGroup.MarginLayoutParams).topMargin = if (expanded) 0 else Ui.dp(this@MainActivity, 12f)
-            requestLayout()
-        }
+        sheet.updateShape(scheme)
         findViewById<View>(R.id.sheet_handle_area).contentDescription =
             getString(if (expanded) R.string.collapse_day else R.string.expand_day)
-        render()
+        heightAnimator?.cancel()
+        top.visibility = View.VISIBLE
+        params.weight = 0f
+        params.height = from
+        params.topMargin = Ui.dp(this, 12f)
+        sheetView.layoutParams = params
+        heightAnimator = ValueAnimator.ofInt(from, to).apply {
+            duration = 180
+            interpolator = DecelerateInterpolator()
+            addUpdateListener {
+                params.height = it.animatedValue as Int
+                sheetView.layoutParams = params
+            }
+            addListener(object : AnimatorListenerAdapter() {
+                private var cancelled = false
+                override fun onAnimationCancel(animation: Animator) { cancelled = true }
+                override fun onAnimationEnd(animation: Animator) {
+                    if (cancelled || !expanded) return
+                    // Fully covering the grid: hand the whole column to the sheet.
+                    top.visibility = View.GONE
+                    params.height = 0
+                    params.weight = 1f
+                    params.topMargin = 0
+                    sheetView.layoutParams = params
+                }
+            })
+            start()
+        }
     }
 
     private fun syncNow() {

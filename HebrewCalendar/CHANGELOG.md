@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-08 (widget lines, day sheet size)
+- Changed: grid lines in the widget are brighter and 1dp (`Ui.gridLine`).
+- Changed: closed day details are ~30% of the screen height (180-280dp); the month grid rows
+  now fill the rest (`MonthGridRenderer.bindGrid(fill = true)`).
+- Changed: expanding/collapsing the day details animates the sheet's height over the grid (180ms)
+  instead of hiding the grid first.
+
 ## 2026-11-08 (colors, full-screen day, Hebrew date picker)
 - Changed: Google's vivid turquoise event color is softened to a calm blue (`theme/EventColors.kt`,
   applied in `CalendarRepository`), and chip text switches to dark/white by contrast.

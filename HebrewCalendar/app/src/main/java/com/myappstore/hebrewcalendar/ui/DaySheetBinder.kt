@@ -48,8 +48,7 @@ class DaySheetBinder(
     private val zmanim = activity.findViewById<LinearLayout>(R.id.zmanim_container)
 
     fun bind(date: LocalDate, dayEvents: List<CalendarEvent>, canReadCalendar: Boolean, city: City, scheme: ColorScheme, scale: Float) {
-        val corner = if (isExpanded) 0f else 28f
-        sheet.background = Ui.rounded(activity, scheme.surfaceContainerLow, corner, corner, 0f, 0f)
+        updateShape(scheme)
         activity.findViewById<View>(R.id.sheet_handle).background = Ui.rounded(activity, scheme.outline, 2f)
         title.text = DateLabels.fullHebrewDate(HebrewDate.of(date))
         title.setTextColor(scheme.onSurface)
@@ -82,6 +81,12 @@ class DaySheetBinder(
             events.addView(eventItem(event, index, dayEvents.size, scheme, scale), params)
         }
         bindZmanim(date, city, scheme, scale)
+    }
+
+    /** Round top corners while it is a bottom sheet, square once it covers the screen. */
+    fun updateShape(scheme: ColorScheme) {
+        val corner = if (isExpanded) 0f else 28f
+        sheet.background = Ui.rounded(activity, scheme.surfaceContainerLow, corner, corner, 0f, 0f)
     }
 
     /** One card with a row per zman: name at the start, time at the end. */

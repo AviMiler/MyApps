@@ -45,19 +45,27 @@ class MonthGridRenderer(
         }
     }
 
-    /** Replaces [grid]'s rows with [weeks]; [selected] gets the container color. */
-    fun bindGrid(grid: LinearLayout, weeks: List<List<DayCell?>>, selected: LocalDate?, onDayClick: ((LocalDate) -> Unit)?) {
+    /**
+     * Replaces [grid]'s rows with [weeks]; [selected] gets the container color.
+     * With [fill] the rows share the grid's height (it must have a fixed or weighted
+     * height); otherwise every cell has a fixed height.
+     */
+    fun bindGrid(
+        grid: LinearLayout, weeks: List<List<DayCell?>>, selected: LocalDate?,
+        onDayClick: ((LocalDate) -> Unit)?, fill: Boolean = false
+    ) {
         grid.removeAllViews()
         grid.setBackgroundColor(if (settings.showGridLines) scheme.outlineVariant else scheme.surface)
         val half = Ui.dp(context, 0.5f).coerceAtLeast(1)
         for (week in weeks) {
             val row = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL }
             for (cell in week) {
-                val params = LinearLayout.LayoutParams(0, Ui.dp(context, 58f * scale), 1f)
+                val params = LinearLayout.LayoutParams(0, if (fill) LayoutParams.MATCH_PARENT else Ui.dp(context, 58f * scale), 1f)
                 params.setMargins(0, half, half, 0)
                 row.addView(cellView(cell, cell?.date == selected, onDayClick), params)
             }
-            grid.addView(row, LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
+            grid.addView(row, if (fill) LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f)
+                else LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
         }
     }
 

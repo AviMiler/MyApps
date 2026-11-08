@@ -48,4 +48,7 @@ object Ui {
 
     /** Background of a card/list item resting on a surface: lighter than the surface in both modes. */
     val ColorScheme.cardColor: Int get() = if (isDark) surfaceContainerHigh else surfaceContainerLowest
+
+    /** Lines between day cells: clearly visible on the surface in both light and dark. */
+    val ColorScheme.gridLine: Int get() = ColorScheme.blend(surface, onSurface, if (isDark) 0.38f else 0.28f)
 }

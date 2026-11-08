@@ -21,6 +21,7 @@ import com.myappstore.hebrewcalendar.settings.TodayShape
 import com.myappstore.hebrewcalendar.theme.ColorScheme
 import com.myappstore.hebrewcalendar.theme.EventColors
 import com.myappstore.hebrewcalendar.theme.Ui
+import com.myappstore.hebrewcalendar.theme.Ui.gridLine
 import com.myappstore.hebrewcalendar.ui.HolidayNames
 import com.myappstore.hebrewcalendar.ui.MainActivity
 import java.time.LocalDate
@@ -70,7 +71,7 @@ object WidgetRenderer {
         views.setOnClickPendingIntent(R.id.widget_add, openApp(context, today, addEvent = true))
 
         views.removeAllViews(R.id.widget_grid)
-        colors.background(views, R.id.widget_grid) { if (settings.showGridLines) it.outlineVariant else it.surfaceContainer }
+        colors.background(views, R.id.widget_grid) { if (settings.showGridLines) it.gridLine else it.surfaceContainer }
         val weeks = MonthModel.build(page, today, events)
         val room = chipRoom(manager, widgetId, weeks.size)
         for (week in weeks) {
