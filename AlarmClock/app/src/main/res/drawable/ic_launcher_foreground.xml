@@ -1,0 +1,20 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Simple white bell glyph, scaled up and centered in the icon's safe zone. -->
+    <group
+        android:translateX="54"
+        android:translateY="57"
+        android:scaleX="2.8"
+        android:scaleY="2.8">
+        <path
+            android:pathData="M0,10 c1.1,0 2,-0.9 2,-2 h-4 c0,1.1 0.9,2 2,2 z
+                M6,4 v-5 c0,-3.07 -1.64,-5.64 -4.5,-6.32 V-8
+                c0,-0.83 -0.67,-1.5 -1.5,-1.5 s-1.5,0.67 -1.5,1.5 v0.68
+                C-4.37,-6.64 -6,-4.08 -6,-1 v5 l-2,2 v1 h16 v-1 z"
+            android:fillColor="#FFFFFF" />
+    </group>
+</vector>
