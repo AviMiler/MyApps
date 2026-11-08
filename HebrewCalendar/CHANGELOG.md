@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-08 (widget lines, bottom edge)
+- Changed: widget grid lines are separate 1dp views per cell (above and beside it), so they run
+  edge to edge and down to the widget's bottom (no 10dp dead band, no stray line from rounding);
+  the grid background is no longer used for lines. No line along the widget's left edge.
+
 ## 2026-11-08 (widget lines, day sheet size)
 - Changed: grid lines in the widget are brighter and 1dp (`Ui.gridLine`).
 - Changed: closed day details are ~30% of the screen height (180-280dp); the month grid rows

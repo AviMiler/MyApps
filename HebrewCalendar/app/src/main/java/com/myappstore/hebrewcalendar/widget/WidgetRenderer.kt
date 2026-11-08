@@ -71,7 +71,6 @@ object WidgetRenderer {
         views.setOnClickPendingIntent(R.id.widget_add, openApp(context, today, addEvent = true))
 
         views.removeAllViews(R.id.widget_grid)
-        colors.background(views, R.id.widget_grid) { if (settings.showGridLines) it.gridLine else it.surfaceContainer }
         val weeks = MonthModel.build(page, today, events)
         val room = chipRoom(manager, widgetId, weeks.size)
         for (week in weeks) {
@@ -85,8 +84,13 @@ object WidgetRenderer {
     }
 
     private fun cellViews(context: Context, colors: WidgetColors, settings: DisplaySettings, cell: DayCell?, room: Int, isLast: Boolean): RemoteViews {
-        val views = RemoteViews(context.packageName, if (isLast) R.layout.widget_day_cell_last else R.layout.widget_day_cell)
-        colors.background(views, R.id.widget_cell) { it.surfaceContainer }
+        val views = RemoteViews(context.packageName, R.layout.widget_day_cell)
+        // Lines: above every cell and beside it, except along the widget's own edge.
+        val lines = if (settings.showGridLines) View.VISIBLE else View.GONE
+        views.setViewVisibility(R.id.widget_cell_line_top, lines)
+        views.setViewVisibility(R.id.widget_cell_line_end, if (isLast) View.GONE else lines)
+        colors.background(views, R.id.widget_cell_line_top) { it.gridLine }
+        colors.background(views, R.id.widget_cell_line_end) { it.gridLine }
         if (cell == null) return views
         views.setTextViewText(R.id.widget_cell_number, cell.primaryLabel)
         val isHoliday = settings.showHolidays && cell.holiday != null
@@ -184,7 +188,7 @@ object WidgetRenderer {
 
     /** Sizes in dp from widget_month / widget_day_cell, for [chipRoom]. */
     private const val DEFAULT_HEIGHT_DP = 250
-    private const val CHROME_DP = 20 + 38 + 18 // vertical padding, header, weekday letters
+    private const val CHROME_DP = 10 + 38 + 18 // top padding (the grid reaches the bottom), header, weekday letters
     private const val NUMBER_ROW_DP = 23f
     private const val CHIP_DP = 12f
     private const val MAX_CHIPS = 4
