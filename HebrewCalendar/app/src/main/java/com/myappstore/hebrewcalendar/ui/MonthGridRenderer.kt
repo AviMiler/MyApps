@@ -93,11 +93,18 @@ class MonthGridRenderer(
             text = cell.primaryLabel
             gravity = Gravity.CENTER
             textSp(12.5f, scale)
+            // Hebrew day labels such as כ״א are wider than a one-digit box: keep them on one
+            // line and let the box grow instead of wrapping (which hid the last letter).
+            maxLines = 1
+            setSingleLine(true)
+            includeFontPadding = false
+            minWidth = size
+            setPadding(Ui.dp(context, 3f), 0, Ui.dp(context, 3f), 0)
             typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
             setTextColor(numberColor(cell, isSelected))
             if (cell.isToday) background = Ui.icon(context, Ui.todayShapeRes(settings.todayShape), scheme.primary)
         }
-        row.addView(number, LinearLayout.LayoutParams(size, size))
+        row.addView(number, LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, size))
         row.addView(View(context), LinearLayout.LayoutParams(0, 1, 1f))
         if (settings.showSecondaryDate) {
             val secondary = TextView(context).apply {
