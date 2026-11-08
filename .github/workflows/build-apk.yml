@@ -7,18 +7,33 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+# contents: write lets the release steps attach APKs to a GitHub Release.
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      # One app's flaky download must not cancel the other apps' builds.
+      fail-fast: false
       matrix:
         app:
           - dir: AgoraApp
             artifact: AgoraApp-debug-apk
+          - dir: AlarmClock
+            artifact: AlarmClock-debug-apk
           - dir: ClaudeCameraLauncher
             artifact: ClaudeCameraLauncher-debug-apk
+          - dir: HebrewCalendar
+            artifact: HebrewCalendar-debug-apk
+            # Also published to a fixed Release so the APK has a direct download
+            # link that works on a phone (Actions artifacts need a desktop login).
+            release_tag: hebrew-calendar-latest
           - dir: SmsForwarder
             artifact: SmsForwarder-debug-apk
+          - dir: Yad2App
+            artifact: Yad2App-debug-apk
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,7 +52,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Unit tests
-        if: matrix.app.dir == 'SmsForwarder'
+        if: matrix.app.dir == 'SmsForwarder' || matrix.app.dir == 'HebrewCalendar'
         working-directory: ${{ matrix.app.dir }}
         run: ./gradlew testDebugUnitTest --no-daemon
 
@@ -50,6 +65,23 @@ jobs:
         with:
           name: ${{ matrix.app.artifact }}
           path: ${{ matrix.app.dir }}/app/build/outputs/apk/debug/*.apk
+
+      - name: Name APK for the Release
+        if: matrix.app.release_tag && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: |
+          cp ${{ matrix.app.dir }}/app/build/outputs/apk/debug/app-debug.apk ${{ matrix.app.dir }}.apk
+
+      - name: Upload APK to Release
+        if: matrix.app.release_tag && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ matrix.app.release_tag }}
+          target_commitish: ${{ github.sha }}
+          name: ${{ matrix.app.dir }} (latest build)
+          body: |
+            Latest debug build of ${{ matrix.app.dir }} from commit ${{ github.sha }}.
+            Download ${{ matrix.app.dir }}.apk below and install it on the phone.
+          files: ${{ matrix.app.dir }}.apk
 
   # A manual run also publishes SmsForwarder as a release asset, so there is a direct link to
   # install from a phone: releases/download/smsforwarder-latest/Halaa.apk
