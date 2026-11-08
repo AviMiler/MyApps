@@ -15,6 +15,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      # One app's flaky download must not cancel the other apps' builds.
+      fail-fast: false
       matrix:
         app:
           - dir: AgoraApp
