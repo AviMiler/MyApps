@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_add"
+        android:shortcutId="new_route"
+        android:shortcutShortLabel="@string/shortcut_new_route">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="com.myappstore.smsforwarder.MainActivity"
+            android:targetPackage="com.myappstore.smsforwarder">
+            <extra
+                android:name="shortcut"
+                android:value="new_route" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_log"
+        android:shortcutId="log"
+        android:shortcutShortLabel="@string/shortcut_log">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="com.myappstore.smsforwarder.MainActivity"
+            android:targetPackage="com.myappstore.smsforwarder">
+            <extra
+                android:name="shortcut"
+                android:value="log" />
+        </intent>
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_pause"
+        android:shortcutId="pause_hour"
+        android:shortcutShortLabel="@string/shortcut_pause">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetClass="com.myappstore.smsforwarder.MainActivity"
+            android:targetPackage="com.myappstore.smsforwarder">
+            <extra
+                android:name="shortcut"
+                android:value="pause_hour" />
+        </intent>
+    </shortcut>
+</shortcuts>

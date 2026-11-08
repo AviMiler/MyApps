@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:pathData="M0,0h108v108h-108z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="12"
+                android:startY="0"
+                android:endX="96"
+                android:endY="108">
+                <item android:offset="0" android:color="#FFFF9150" />
+                <item android:offset="0.55" android:color="#FFFF6A3D" />
+                <item android:offset="1" android:color="#FFE0432A" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <!-- A faint transit line crossing the tile, echoing the routes inside the app. -->
+    <path
+        android:pathData="M-4,86 C24,86 30,70 54,70 S86,54 112,54"
+        android:strokeWidth="3"
+        android:strokeColor="#26FFFFFF"
+        android:strokeLineCap="round" />
+    <path
+        android:pathData="M-4,96 C28,96 36,82 60,82 S92,66 112,66"
+        android:strokeWidth="2"
+        android:strokeColor="#1AFFFFFF"
+        android:strokeLineCap="round" />
+</vector>
