@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-08 (updatable builds)
+- Changed: debug builds are signed with a committed fixed key (`app/debug.keystore`) and `versionCode`
+  comes from `GITHUB_RUN_NUMBER`, so each CI APK installs as an update over the previous one.
+  The first install after this change needs an uninstall (the signing key changed once).
+
 ## 2026-11-08 (widget lines, bottom edge)
 - Changed: widget grid lines are separate 1dp views per cell (above and beside it), so they run
   edge to edge and down to the widget's bottom (no 10dp dead band, no stray line from rounding);
