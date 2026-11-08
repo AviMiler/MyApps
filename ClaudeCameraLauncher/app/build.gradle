@@ -11,8 +11,20 @@ android {
         applicationId "com.myappstore.claudecam"
         minSdk 26
         targetSdk 34
-        versionCode 1
+        // CI passes the run number so every build is newer than the last and installs as an update.
+        versionCode Integer.parseInt(System.getenv("GITHUB_RUN_NUMBER") ?: "1")
         versionName "1.0"
+    }
+
+    // One fixed debug key (committed on purpose; debug builds only). Without it every CI run
+    // signs with a fresh key and Android refuses to update the installed app.
+    signingConfigs {
+        debug {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
     }
 
     buildTypes {
