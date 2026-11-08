@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-08 (long Hebrew day labels)
+- Fixed: Hebrew day labels wider than one digit (כ״א, כ״ד, כ״ה ...) wrapped inside a fixed-width box
+  and lost their last letter. The day-number box now stays on one line and grows (`ui/MonthGridRenderer.kt`,
+  `res/layout/widget_day_cell.xml`).
+
 ## 2026-11-08 (close day details from anywhere)
 - Added: with the day details full screen, dragging down anywhere in them (when scrolled to the top)
   returns them to the small sheet (`ui/components/SheetScrollView.kt`), not only from the grey handle.
