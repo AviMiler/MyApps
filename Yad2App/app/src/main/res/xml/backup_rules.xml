@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The dislike store must survive re-installs / device transfer. -->
+<full-backup-content>
+    <include domain="sharedpref" path="yad2_dislikes.xml" />
+    <include domain="sharedpref" path="yad2_dislike_prefs.xml" />
+</full-backup-content>

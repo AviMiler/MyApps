@@ -1,0 +1,3 @@
+<resources>
+    <style name="Theme.Yad2App" parent="Theme.AppCompat.DayNight.NoActionBar" />
+</resources>
