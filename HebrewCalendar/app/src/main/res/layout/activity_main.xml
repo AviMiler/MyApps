@@ -184,7 +184,8 @@
                     android:layout_gravity="center" />
             </FrameLayout>
 
-            <ScrollView
+            <com.myappstore.hebrewcalendar.ui.components.SheetScrollView
+                android:id="@+id/sheet_scroll"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
@@ -266,7 +267,7 @@
                         android:layout_marginBottom="16dp"
                         android:orientation="vertical" />
                 </LinearLayout>
-            </ScrollView>
+            </com.myappstore.hebrewcalendar.ui.components.SheetScrollView>
         </LinearLayout>
     </LinearLayout>
 

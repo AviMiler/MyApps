@@ -38,6 +38,7 @@ import com.myappstore.hebrewcalendar.theme.Ui
 import com.myappstore.hebrewcalendar.ui.components.ColorPickerDialog
 import com.myappstore.hebrewcalendar.ui.components.DatePickerDialogs
 import com.myappstore.hebrewcalendar.ui.components.MonthSwipeLayout
+import com.myappstore.hebrewcalendar.ui.components.SheetScrollView
 import com.myappstore.hebrewcalendar.widget.MonthWidgetProvider
 import java.time.LocalDate
 import java.util.concurrent.Executors
@@ -91,6 +92,10 @@ class MainActivity : Activity() {
         findViewById<View>(R.id.button_sync).setOnClickListener { syncNow() }
         findViewById<View>(R.id.button_settings).setOnClickListener { startActivity(Intent(this, SettingsActivity::class.java)) }
         bindSheetHandle()
+        findViewById<SheetScrollView>(R.id.sheet_scroll).apply {
+            canPullDown = { sheet.isExpanded }
+            onPullDown = { setDayExpanded(false) }
+        }
         findViewById<View>(R.id.sheet).apply { layoutParams = layoutParams.also { it.height = peekHeight() } }
         findViewById<View>(R.id.fab).setOnClickListener { addEvent(selectedDate) }
         findViewById<View>(R.id.permission_card).setOnClickListener { onPermissionCardClick() }

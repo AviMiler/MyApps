@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-11-08 (close day details from anywhere)
+- Added: with the day details full screen, dragging down anywhere in them (when scrolled to the top)
+  returns them to the small sheet (`ui/components/SheetScrollView.kt`), not only from the grey handle.
+
 ## 2026-11-08 (widget load fix)
 - Fixed: the widget could not be added ("לא ניתן להוסיף widget"): the grid-line views in
   `widget_day_cell.xml` were plain `<View>`, which RemoteViews refuses to inflate. They are
