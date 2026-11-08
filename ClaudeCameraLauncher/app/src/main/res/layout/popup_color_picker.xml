@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_toolbar_pill"
+    android:orientation="horizontal"
+    android:padding="10dp">
+
+    <View
+        android:id="@+id/popupColorRed"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_margin="6dp"
+        android:background="@drawable/shape_swatch_red" />
+
+    <View
+        android:id="@+id/popupColorYellow"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_margin="6dp"
+        android:background="@drawable/shape_swatch_yellow" />
+
+    <View
+        android:id="@+id/popupColorGreen"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_margin="6dp"
+        android:background="@drawable/shape_swatch_green" />
+
+    <View
+        android:id="@+id/popupColorWhite"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_margin="6dp"
+        android:background="@drawable/shape_swatch_white" />
+
+    <View
+        android:id="@+id/popupColorBlue"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_margin="6dp"
+        android:background="@drawable/shape_swatch_blue" />
+</LinearLayout>
