@@ -62,4 +62,24 @@
     <string name="zmanim_city_hint">לחישוב הזמנים ולשעת הדלקת הנרות לפי מנהג המקום</string>
     <string name="switch_to_gregorian">מעבר לתצוגה לועזית</string>
     <string name="switch_to_hebrew">מעבר לתצוגה עברית</string>
+    <string name="pick_date">בחירת תאריך</string>
+    <string name="pick_color">בחירת צבע</string>
+    <string name="reset">איפוס</string>
+    <string name="choose">בחירה</string>
+    <string name="hue">גוון</string>
+    <string name="saturation">עוצמה</string>
+    <string name="brightness">בהירות</string>
+    <string name="section_item_colors">צבע לכל פריט</string>
+    <string name="item_colors_hint">בחרו צבע חופשי לכל חלק במסך. פריט שלא נבחר עבורו צבע, נשאר לפי ערכת הצבעים.</string>
+    <string name="color_default">ברירת מחדל</string>
+    <string name="item_accent">צבע ראשי (כפתורים וסימון)</string>
+    <string name="item_background">רקע המסך</string>
+    <string name="item_sheet">רקע פרטי היום</string>
+    <string name="item_cards">כרטיסים ורשימות</string>
+    <string name="item_text">צבע הטקסט</string>
+    <string name="item_holiday">חגים ומועדים</string>
+    <string name="item_event">אירועים (כל האירועים)</string>
+    <string name="event_color_hint">לחיצה ארוכה על אירוע ברשימה משנה את הצבע שלו</string>
+    <string name="expand_day">הרחבת פרטי היום למסך מלא</string>
+    <string name="collapse_day">צמצום פרטי היום</string>
 </resources>

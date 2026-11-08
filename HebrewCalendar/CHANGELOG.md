@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-11-08 (colors, full-screen day, Hebrew date picker)
+- Changed: Google's vivid turquoise event color is softened to a calm blue (`theme/EventColors.kt`,
+  applied in `CalendarRepository`), and chip text switches to dark/white by contrast.
+- Added: tap (or drag up) the grey handle above the day details to show them full screen;
+  back/tap/drag down returns (`MainActivity.setDayExpanded`, top area is `top_area`).
+- Changed: dark mode surfaces are lifted a step from near-black (`ThemeController.lifted`).
+- Added: free color per item (accent, background, day sheet, cards, text, holidays, events) in the
+  customization screen via `ColorPickerDialog`; long-press an event in the day sheet to color just
+  that event (stored per event id in `AppPreferences`).
+- Added: the date picker (title tap) has a Hebrew page (day/month/year wheels, leap years aware)
+  and a Gregorian page (`ui/components/DatePickerDialogs.kt`).
+- Changed: the Hebrew/Gregorian switch is a small button beside "today" in the top bar; the
+  button group row under the title is gone.
+- Not verified on a device: no Android SDK in the authoring session.
+
 ## 2026-10-27 (zmanim, widget titles)
 - Added: the day's zmanim in the day sheet (`hebrew/Zmanim.kt`): dawn, misheyakir, sunrise,
   latest Shema/Tefilla (MGA and GRA), chatzot, mincha gedola/ketana, plag, sunset, nightfall,

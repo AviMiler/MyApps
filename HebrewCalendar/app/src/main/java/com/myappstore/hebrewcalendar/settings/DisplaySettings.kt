@@ -8,6 +8,9 @@ enum class ThemeMode { SYSTEM, LIGHT, DARK }
 /** How today's date is marked in the grid. */
 enum class TodayShape { COOKIE, CIRCLE, SQUARE, UNDERLINE }
 
+/** Items whose color the user can set freely (any color, on top of the palette). */
+enum class ColorItem { ACCENT, BACKGROUND, SHEET, CARDS, TEXT, HOLIDAY, EVENT }
+
 /** The user's display customization, shared by the app and the widget. */
 data class DisplaySettings(
     val palette: Palette = Palette.WALLPAPER,
@@ -19,7 +22,9 @@ data class DisplaySettings(
     val showHolidays: Boolean = true,
     val showGridLines: Boolean = true,
     /** Index into [TEXT_SCALES]. */
-    val textScaleIndex: Int = 1
+    val textScaleIndex: Int = 1,
+    /** Free color per item; an item not in the map follows the palette. */
+    val colors: Map<ColorItem, Int> = emptyMap()
 ) {
     val textScale: Float get() = TEXT_SCALES[textScaleIndex.coerceIn(TEXT_SCALES.indices)]
 

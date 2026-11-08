@@ -12,10 +12,9 @@ import com.myappstore.hebrewcalendar.hebrew.MonthPage
 import com.myappstore.hebrewcalendar.hebrew.ViewMode
 import com.myappstore.hebrewcalendar.theme.ColorScheme
 import com.myappstore.hebrewcalendar.theme.Ui
-import com.myappstore.hebrewcalendar.ui.components.SegmentedButtons
 import java.time.LocalDate
 
-/** Top app bar, month subtitle, Hebrew/Gregorian button group and the FAB. */
+/** Top app bar, month subtitle, the Hebrew/Gregorian toggle button and the FAB. */
 class TopBarBinder(private val activity: Activity) {
 
     fun bind(page: MonthPage, scheme: ColorScheme, onModeSelected: (ViewMode) -> Unit) {
@@ -27,13 +26,15 @@ class TopBarBinder(private val activity: Activity) {
             .forEach { activity.findViewById<ImageView>(it).setColorFilter(scheme.onSurfaceVariant) }
         bindTodayIcon(scheme)
 
-        val modes = listOf(ViewMode.HEBREW, ViewMode.GREGORIAN)
-        SegmentedButtons.bind(
-            activity.findViewById(R.id.mode_group),
-            listOf(activity.getString(R.string.mode_hebrew), activity.getString(R.string.mode_gregorian)),
-            modes.indexOf(page.mode),
-            scheme
-        ) { onModeSelected(modes[it]) }
+        // Small toggle next to "today": names the calendar a tap switches to (like the widget's button).
+        val toGregorian = page.mode == ViewMode.HEBREW
+        activity.findViewById<TextView>(R.id.button_mode).apply {
+            setText(if (toGregorian) R.string.mode_gregorian else R.string.mode_hebrew)
+            contentDescription = activity.getString(if (toGregorian) R.string.switch_to_gregorian else R.string.switch_to_hebrew)
+            setTextColor(scheme.onSecondaryContainer)
+            background = Ui.rounded(activity, scheme.secondaryContainer, 16f)
+            setOnClickListener { onModeSelected(if (toGregorian) ViewMode.GREGORIAN else ViewMode.HEBREW) }
+        }
 
         activity.findViewById<TextView>(R.id.fab).apply {
             setTextColor(scheme.onPrimaryContainer)

@@ -11,6 +11,13 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
+        <!-- Everything above the day sheet; hidden while the day details are full screen -->
+        <LinearLayout
+            android:id="@+id/top_area"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
         <!-- Top app bar -->
         <LinearLayout
             android:layout_width="match_parent"
@@ -53,6 +60,17 @@
                 android:layout_width="0dp"
                 android:layout_height="1dp"
                 android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/button_mode"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:layout_marginEnd="4dp"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:minWidth="48dp"
+                android:paddingHorizontal="12dp"
+                android:textSize="13sp" />
 
             <FrameLayout
                 android:id="@+id/button_today"
@@ -125,13 +143,6 @@
                 android:src="@drawable/ic_chevron_left" />
         </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/mode_group"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="12dp" />
 
         <LinearLayout
             android:id="@+id/weekday_header"
@@ -146,6 +157,8 @@
             android:layout_height="wrap_content"
             android:orientation="vertical" />
 
+        </LinearLayout>
+
         <!-- Day details as a bottom sheet -->
         <LinearLayout
             android:id="@+id/sheet"
@@ -156,13 +169,18 @@
             android:orientation="vertical"
             android:paddingHorizontal="16dp">
 
-            <View
-                android:id="@+id/sheet_handle"
-                android:layout_width="32dp"
-                android:layout_height="4dp"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="12dp"
-                android:layout_marginBottom="12dp" />
+            <FrameLayout
+                android:id="@+id/sheet_handle_area"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:contentDescription="@string/expand_day">
+
+                <View
+                    android:id="@+id/sheet_handle"
+                    android:layout_width="40dp"
+                    android:layout_height="5dp"
+                    android:layout_gravity="center" />
+            </FrameLayout>
 
             <ScrollView
                 android:layout_width="match_parent"

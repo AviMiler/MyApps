@@ -2,7 +2,6 @@ package com.myappstore.hebrewcalendar.ui
 
 import android.Manifest
 import android.app.Activity
-import android.app.DatePickerDialog
 import android.content.ActivityNotFoundException
 import android.content.ContentUris
 import android.content.Intent
@@ -14,7 +13,11 @@ import android.os.Looper
 import android.provider.CalendarContract
 import android.provider.Settings
 import android.util.Log
+import android.transition.TransitionManager
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
+import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import com.myappstore.hebrewcalendar.R
@@ -28,6 +31,8 @@ import com.myappstore.hebrewcalendar.settings.DisplaySettings
 import com.myappstore.hebrewcalendar.theme.ColorScheme
 import com.myappstore.hebrewcalendar.theme.ThemeController
 import com.myappstore.hebrewcalendar.theme.Ui
+import com.myappstore.hebrewcalendar.ui.components.ColorPickerDialog
+import com.myappstore.hebrewcalendar.ui.components.DatePickerDialogs
 import com.myappstore.hebrewcalendar.ui.components.MonthSwipeLayout
 import com.myappstore.hebrewcalendar.widget.MonthWidgetProvider
 import java.time.LocalDate
@@ -67,7 +72,7 @@ class MainActivity : Activity() {
         preferences = AppPreferences(this)
         repository = CalendarRepository(this)
         topBar = TopBarBinder(this)
-        sheet = DaySheetBinder(this, ::openEvent)
+        sheet = DaySheetBinder(this, ::openEvent, ::pickEventColor)
         selectedDate = dateFrom(intent) ?: LocalDate.now()
         page = MonthPage.containing(selectedDate, preferences.viewMode)
 
@@ -80,6 +85,7 @@ class MainActivity : Activity() {
         findViewById<View>(R.id.button_today).setOnClickListener { select(LocalDate.now()) }
         findViewById<View>(R.id.button_sync).setOnClickListener { syncNow() }
         findViewById<View>(R.id.button_settings).setOnClickListener { startActivity(Intent(this, SettingsActivity::class.java)) }
+        bindSheetHandle()
         findViewById<View>(R.id.fab).setOnClickListener { addEvent(selectedDate) }
         findViewById<View>(R.id.permission_card).setOnClickListener { onPermissionCardClick() }
 
@@ -89,7 +95,7 @@ class MainActivity : Activity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        dateFrom(intent)?.let(::select)
+        dateFrom(intent)?.let { setDayExpanded(false); select(it) }
         // onNewIntent runs before onStart when the activity comes back to the front.
         pendingAddEvent = intent.getBooleanExtra(EXTRA_ADD_EVENT, false)
     }
@@ -108,6 +114,10 @@ class MainActivity : Activity() {
             pendingAddEvent = false
             addEvent(selectedDate)
         }
+    }
+
+    override fun onBackPressed() {
+        if (sheet.isExpanded) setDayExpanded(false) else super.onBackPressed()
     }
 
     override fun onStop() {
@@ -184,11 +194,61 @@ class MainActivity : Activity() {
         MonthWidgetProvider.refreshAll(this)
     }
 
+    /** Hebrew or Gregorian date picker, opening on the calendar currently shown. */
     private fun pickDate() {
-        val date = selectedDate
-        DatePickerDialog(this, SystemBars.dialogTheme(scheme), { _, year, month, day ->
-            select(LocalDate.of(year, month + 1, day))
-        }, date.year, date.monthValue - 1, date.dayOfMonth).show()
+        DatePickerDialogs(this, scheme).show(selectedDate, page.mode) { select(it) }
+    }
+
+    /** Lets the user give one event its own color (all its occurrences, in the app and widget). */
+    private fun pickEventColor(event: CalendarEvent) {
+        ColorPickerDialog(this, scheme).show(
+            title = event.title, initial = event.color, withNeutrals = false,
+            onPick = { color -> saveEventColor(event, color) },
+            onReset = { saveEventColor(event, null) }
+        )
+    }
+
+    private fun saveEventColor(event: CalendarEvent, color: Int?) {
+        preferences.setEventColor(event.id, color)
+        reload()
+        MonthWidgetProvider.refreshAll(this)
+    }
+
+    /**
+     * The grey handle on top of the day details: tap it, or drag it up, to show the
+     * details on the whole screen; tap or drag down to go back.
+     */
+    private fun bindSheetHandle() {
+        val slop = ViewConfiguration.get(this).scaledTouchSlop
+        var downY = 0f
+        findViewById<View>(R.id.sheet_handle_area).setOnTouchListener { view, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> downY = event.rawY
+                MotionEvent.ACTION_UP -> {
+                    val dy = event.rawY - downY
+                    when {
+                        dy < -slop * 2 -> setDayExpanded(true)
+                        dy > slop * 2 -> setDayExpanded(false)
+                        else -> { view.performClick(); setDayExpanded(!sheet.isExpanded) }
+                    }
+                }
+            }
+            true
+        }
+    }
+
+    private fun setDayExpanded(expanded: Boolean) {
+        if (sheet.isExpanded == expanded) return
+        sheet.isExpanded = expanded
+        TransitionManager.beginDelayedTransition(findViewById<ViewGroup>(R.id.root))
+        findViewById<View>(R.id.top_area).visibility = if (expanded) View.GONE else View.VISIBLE
+        findViewById<View>(R.id.sheet).apply {
+            (layoutParams as ViewGroup.MarginLayoutParams).topMargin = if (expanded) 0 else Ui.dp(this@MainActivity, 12f)
+            requestLayout()
+        }
+        findViewById<View>(R.id.sheet_handle_area).contentDescription =
+            getString(if (expanded) R.string.collapse_day else R.string.expand_day)
+        render()
     }
 
     private fun syncNow() {

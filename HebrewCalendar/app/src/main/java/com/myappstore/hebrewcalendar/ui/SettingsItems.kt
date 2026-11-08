@@ -36,6 +36,39 @@ class SettingsItems(private val context: Context, private val scheme: ColorSchem
         setPadding(dp(32f), dp(20f), dp(32f), dp(8f))
     }
 
+    /** Small explanatory text under a section title. */
+    fun hint(value: String): View = text(value, 13f, scheme.onSurfaceVariant).apply {
+        setPadding(dp(32f), 0, dp(32f), dp(8f))
+    }
+
+    /**
+     * A row for one freely colorable item: a color dot (hollow when the item still
+     * follows the palette), its name and the choice made.
+     */
+    fun colorRow(label: String, color: Int?, onClick: () -> Unit): View {
+        val dot = View(context).apply {
+            background = if (color != null) {
+                Ui.rounded(context, color, 20f).apply { setStroke(dp(1f), scheme.outlineVariant) }
+            } else {
+                Ui.rounded(context, 0, 20f).apply { setStroke(dp(2f), scheme.outline) }
+            }
+        }
+        val texts = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
+        texts.addView(text(label, 16f))
+        texts.addView(text(
+            if (color == null) context.getString(R.string.color_default) else "#%06X".format(color and 0xFFFFFF),
+            13f, scheme.onSurfaceVariant
+        ))
+        return LinearLayout(context).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            minimumHeight = dp(64f)
+            setPadding(dp(16f), dp(10f), dp(16f), dp(10f))
+            addView(dot, LinearLayout.LayoutParams(dp(32f), dp(32f)).apply { marginEnd = dp(16f) })
+            addView(texts, LinearLayout.LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f))
+            setOnClickListener { onClick() }
+        }
+    }
+
     /** Stacks [items] with 2dp gaps: large outer corners, small inner ones. */
     fun group(vararg items: View): View {
         val group = LinearLayout(context).apply {

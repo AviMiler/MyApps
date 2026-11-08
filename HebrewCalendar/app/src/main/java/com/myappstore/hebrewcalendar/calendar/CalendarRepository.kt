@@ -14,6 +14,9 @@ import android.provider.CalendarContract.Events
 import android.provider.CalendarContract.Instances
 import android.util.Log
 import com.myappstore.hebrewcalendar.model.CalendarEvent
+import com.myappstore.hebrewcalendar.settings.AppPreferences
+import com.myappstore.hebrewcalendar.settings.ColorItem
+import com.myappstore.hebrewcalendar.theme.EventColors
 import com.myappstore.hebrewcalendar.model.EventDays
 import com.myappstore.hebrewcalendar.model.WritableCalendar
 import java.time.LocalDate
@@ -52,16 +55,19 @@ class CalendarRepository(private val context: Context) {
             Instances.ALL_DAY, Instances.DISPLAY_COLOR, Instances.CALENDAR_DISPLAY_NAME, Instances.EVENT_LOCATION
         )
         val events = mutableListOf<CalendarEvent>()
+        val preferences = AppPreferences(context)
+        val defaultColor = preferences.display.colors[ColorItem.EVENT]
         try {
             resolver.query(uri, projection, "${Instances.VISIBLE} = 1", null, "${Instances.BEGIN} ASC")?.use { cursor ->
                 while (cursor.moveToNext()) {
+                    val id = cursor.getLong(0)
                     events += CalendarEvent(
-                        id = cursor.getLong(0),
+                        id = id,
                         title = cursor.getString(1).orEmpty().ifBlank { "(ללא כותרת)" },
                         beginMillis = cursor.getLong(2),
                         endMillis = cursor.getLong(3),
                         isAllDay = cursor.getInt(4) == 1,
-                        color = cursor.getInt(5),
+                        color = preferences.eventColor(id) ?: defaultColor ?: EventColors.soften(cursor.getInt(5)),
                         calendarName = cursor.getString(6).orEmpty(),
                         location = cursor.getString(7).orEmpty()
                     )

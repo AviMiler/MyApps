@@ -12,11 +12,15 @@ import com.myappstore.hebrewcalendar.hebrew.Cities
 import com.myappstore.hebrewcalendar.hebrew.MonthPage
 import com.myappstore.hebrewcalendar.model.MonthModel
 import com.myappstore.hebrewcalendar.settings.AppPreferences
+import com.myappstore.hebrewcalendar.settings.ColorItem
 import com.myappstore.hebrewcalendar.settings.DisplaySettings
 import com.myappstore.hebrewcalendar.settings.ThemeMode
 import com.myappstore.hebrewcalendar.theme.ColorScheme
+import com.myappstore.hebrewcalendar.theme.EventColors
 import com.myappstore.hebrewcalendar.theme.ThemeController
 import com.myappstore.hebrewcalendar.theme.Ui
+import com.myappstore.hebrewcalendar.theme.Ui.cardColor
+import com.myappstore.hebrewcalendar.ui.components.ColorPickerDialog
 import com.myappstore.hebrewcalendar.ui.components.SegmentedButtons
 import com.myappstore.hebrewcalendar.widget.MonthWidgetProvider
 import java.time.LocalDate
@@ -63,6 +67,12 @@ class SettingsActivity : Activity() {
             listOf(R.string.theme_system, R.string.theme_light, R.string.theme_dark), settings.themeMode.ordinal
         ) { update(settings.copy(themeMode = ThemeMode.values()[it])) }))
 
+        content.addView(items.section(getString(R.string.section_item_colors)))
+        content.addView(items.hint(getString(R.string.item_colors_hint) + "\n" + getString(R.string.event_color_hint)))
+        content.addView(items.group(*ColorItem.values().map { item ->
+            items.colorRow(getString(ITEM_LABELS.getValue(item)), settings.colors[item]) { pickItemColor(item) }
+        }.toTypedArray()))
+
         content.addView(items.section(getString(R.string.section_calendar)))
         content.addView(items.group(
             items.shapePicker(settings.todayShape) { update(settings.copy(todayShape = it)) },
@@ -93,6 +103,24 @@ class SettingsActivity : Activity() {
         preferences.display = newSettings
         build()
         MonthWidgetProvider.refreshAll(this)
+    }
+
+    private fun pickItemColor(item: ColorItem) {
+        val shown = settings.colors[item] ?: when (item) {
+            ColorItem.ACCENT -> scheme.primary
+            ColorItem.BACKGROUND -> scheme.surface
+            ColorItem.SHEET -> scheme.surfaceContainerLow
+            ColorItem.CARDS -> scheme.cardColor
+            ColorItem.TEXT -> scheme.onSurface
+            ColorItem.HOLIDAY -> scheme.tertiary
+            ColorItem.EVENT -> EventColors.PALETTE[1]
+        }
+        val neutrals = item in listOf(ColorItem.BACKGROUND, ColorItem.SHEET, ColorItem.CARDS, ColorItem.TEXT)
+        ColorPickerDialog(this, scheme).show(
+            title = getString(ITEM_LABELS.getValue(item)), initial = shown, withNeutrals = neutrals,
+            onPick = { color -> update(settings.copy(colors = settings.colors + (item to color))) },
+            onReset = { update(settings.copy(colors = settings.colors - item)) }
+        )
     }
 
     private fun pickCity() {
@@ -151,4 +179,13 @@ class SettingsActivity : Activity() {
         }
     }
 
+
+    private companion object {
+        val ITEM_LABELS = mapOf(
+            ColorItem.ACCENT to R.string.item_accent, ColorItem.BACKGROUND to R.string.item_background,
+            ColorItem.SHEET to R.string.item_sheet, ColorItem.CARDS to R.string.item_cards,
+            ColorItem.TEXT to R.string.item_text, ColorItem.HOLIDAY to R.string.item_holiday,
+            ColorItem.EVENT to R.string.item_event
+        )
+    }
 }

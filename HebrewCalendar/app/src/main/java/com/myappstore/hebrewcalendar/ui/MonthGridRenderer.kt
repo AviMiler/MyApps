@@ -15,6 +15,7 @@ import com.myappstore.hebrewcalendar.model.DayCell
 import com.myappstore.hebrewcalendar.settings.DisplaySettings
 import com.myappstore.hebrewcalendar.settings.TodayShape
 import com.myappstore.hebrewcalendar.theme.ColorScheme
+import com.myappstore.hebrewcalendar.theme.EventColors
 import com.myappstore.hebrewcalendar.theme.Ui
 import com.myappstore.hebrewcalendar.theme.Ui.textSp
 import java.time.LocalDate
@@ -126,7 +127,7 @@ class MonthGridRenderer(
             return chips
         }
         val room = 2 - chips.size
-        cell.events.take(room).forEach { chips += chip(it.title, it.color, WHITE) }
+        cell.events.take(room).forEach { chips += chip(it.title, it.color, EventColors.onColor(it.color)) }
         val hidden = cell.events.size - room
         if (hidden > 0) chips += chip("+$hidden", 0, scheme.onSurfaceVariant)
         return chips
@@ -159,7 +160,4 @@ class MonthGridRenderer(
         topMargin = Ui.dp(context, 1.5f)
     }
 
-    private companion object {
-        val WHITE = ColorScheme.opaque("FFFFFF")
-    }
 }

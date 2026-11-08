@@ -27,7 +27,9 @@ class AppPreferences(context: Context) {
                 showEventTitles = prefs.getBoolean(KEY_EVENT_TITLES, defaults.showEventTitles),
                 showHolidays = prefs.getBoolean(KEY_HOLIDAYS, defaults.showHolidays),
                 showGridLines = prefs.getBoolean(KEY_GRID_LINES, defaults.showGridLines),
-                textScaleIndex = prefs.getInt(KEY_TEXT_SCALE, defaults.textScaleIndex)
+                textScaleIndex = prefs.getInt(KEY_TEXT_SCALE, defaults.textScaleIndex),
+                colors = ColorItem.values().filter { prefs.contains(colorKey(it)) }
+                    .associateWith { prefs.getInt(colorKey(it), 0) }
             )
         }
         set(value) = prefs.edit()
@@ -39,7 +41,22 @@ class AppPreferences(context: Context) {
             .putBoolean(KEY_HOLIDAYS, value.showHolidays)
             .putBoolean(KEY_GRID_LINES, value.showGridLines)
             .putInt(KEY_TEXT_SCALE, value.textScaleIndex)
+            .apply {
+                ColorItem.values().forEach { item ->
+                    value.colors[item]?.let { putInt(colorKey(item), it) } ?: remove(colorKey(item))
+                }
+            }
             .apply()
+
+    /** The color the user gave this one event (all its occurrences), or null for the default. */
+    fun eventColor(eventId: Long): Int? =
+        if (prefs.contains(eventKey(eventId))) prefs.getInt(eventKey(eventId), 0) else null
+
+    fun setEventColor(eventId: Long, color: Int?) {
+        val edit = prefs.edit()
+        if (color == null) edit.remove(eventKey(eventId)) else edit.putInt(eventKey(eventId), color)
+        edit.apply()
+    }
 
     /** The city the day's zmanim are computed for. */
     var zmanimCity: City
@@ -58,6 +75,10 @@ class AppPreferences(context: Context) {
         prefs.edit().putInt(widgetKey(widgetId), offset).apply()
 
     fun removeWidget(widgetId: Int) = prefs.edit().remove(widgetKey(widgetId)).apply()
+
+    private fun colorKey(item: ColorItem) = "color_${item.name}"
+
+    private fun eventKey(eventId: Long) = "event_color_$eventId"
 
     private fun widgetKey(widgetId: Int) = "widget_offset_$widgetId"
 

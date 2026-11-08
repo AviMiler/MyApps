@@ -19,6 +19,7 @@ import com.myappstore.hebrewcalendar.settings.AppPreferences
 import com.myappstore.hebrewcalendar.settings.DisplaySettings
 import com.myappstore.hebrewcalendar.settings.TodayShape
 import com.myappstore.hebrewcalendar.theme.ColorScheme
+import com.myappstore.hebrewcalendar.theme.EventColors
 import com.myappstore.hebrewcalendar.theme.Ui
 import com.myappstore.hebrewcalendar.ui.HolidayNames
 import com.myappstore.hebrewcalendar.ui.MainActivity
@@ -143,7 +144,7 @@ object WidgetRenderer {
         cell.events.take(shown).forEach { event ->
             chips += chip(context, event.title) { views ->
                 views.setInt(R.id.widget_chip, "setBackgroundColor", event.color)
-                views.setTextColor(R.id.widget_chip, WHITE)
+                views.setTextColor(R.id.widget_chip, EventColors.onColor(event.color))
             }
         }
         val hidden = cell.events.size - shown
@@ -177,8 +178,6 @@ object WidgetRenderer {
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     }
-
-    private val WHITE = ColorScheme.opaque("FFFFFF")
 
     /** Sizes in dp from widget_month / widget_day_cell, for [chipRoom]. */
     private const val DEFAULT_HEIGHT_DP = 250

@@ -29,7 +29,14 @@ import java.time.format.DateTimeFormatter
  * as a Material 3 list (grouped items with large outer and small inner corners)
  * and the day's zmanim.
  */
-class DaySheetBinder(private val activity: Activity, private val onEventClick: (CalendarEvent) -> Unit) {
+class DaySheetBinder(
+    private val activity: Activity,
+    private val onEventClick: (CalendarEvent) -> Unit,
+    private val onEventLongClick: (CalendarEvent) -> Unit
+) {
+
+    /** While true the sheet covers the whole screen, so its top corners are square. */
+    var isExpanded = false
 
     private val sheet = activity.findViewById<LinearLayout>(R.id.sheet)
     private val title = activity.findViewById<TextView>(R.id.sheet_title)
@@ -41,7 +48,8 @@ class DaySheetBinder(private val activity: Activity, private val onEventClick: (
     private val zmanim = activity.findViewById<LinearLayout>(R.id.zmanim_container)
 
     fun bind(date: LocalDate, dayEvents: List<CalendarEvent>, canReadCalendar: Boolean, city: City, scheme: ColorScheme, scale: Float) {
-        sheet.background = Ui.rounded(activity, scheme.surfaceContainerLow, 28f, 28f, 0f, 0f)
+        val corner = if (isExpanded) 0f else 28f
+        sheet.background = Ui.rounded(activity, scheme.surfaceContainerLow, corner, corner, 0f, 0f)
         activity.findViewById<View>(R.id.sheet_handle).background = Ui.rounded(activity, scheme.outline, 2f)
         title.text = DateLabels.fullHebrewDate(HebrewDate.of(date))
         title.setTextColor(scheme.onSurface)
@@ -114,6 +122,7 @@ class DaySheetBinder(private val activity: Activity, private val onEventClick: (
             setPadding(Ui.dp(activity, 16f), Ui.dp(activity, 8f), Ui.dp(activity, 16f), Ui.dp(activity, 8f))
             background = Ui.rounded(activity, scheme.cardColor, top, top, bottom, bottom)
             setOnClickListener { onEventClick(event) }
+            setOnLongClickListener { onEventLongClick(event); true }
         }
         val dot = View(activity).apply { background = Ui.rounded(activity, event.color, 6f) }
         item.addView(dot, LinearLayout.LayoutParams(Ui.dp(activity, 12f), Ui.dp(activity, 12f)))
