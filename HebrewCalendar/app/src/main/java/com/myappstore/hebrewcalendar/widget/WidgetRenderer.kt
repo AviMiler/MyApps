@@ -76,14 +76,16 @@ object WidgetRenderer {
         val room = chipRoom(manager, widgetId, weeks.size)
         for (week in weeks) {
             val row = RemoteViews(context.packageName, R.layout.widget_week_row)
-            week.forEach { cell -> row.addView(R.id.widget_week_row, cellViews(context, colors, settings, cell, room)) }
+            week.forEachIndexed { index, cell ->
+                row.addView(R.id.widget_week_row, cellViews(context, colors, settings, cell, room, isLast = index == week.lastIndex))
+            }
             views.addView(R.id.widget_grid, row)
         }
         manager.updateAppWidget(widgetId, views)
     }
 
-    private fun cellViews(context: Context, colors: WidgetColors, settings: DisplaySettings, cell: DayCell?, room: Int): RemoteViews {
-        val views = RemoteViews(context.packageName, R.layout.widget_day_cell)
+    private fun cellViews(context: Context, colors: WidgetColors, settings: DisplaySettings, cell: DayCell?, room: Int, isLast: Boolean): RemoteViews {
+        val views = RemoteViews(context.packageName, if (isLast) R.layout.widget_day_cell_last else R.layout.widget_day_cell)
         colors.background(views, R.id.widget_cell) { it.surfaceContainer }
         if (cell == null) return views
         views.setTextViewText(R.id.widget_cell_number, cell.primaryLabel)
