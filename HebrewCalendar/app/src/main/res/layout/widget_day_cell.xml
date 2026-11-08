@@ -67,14 +67,17 @@
             android:textSize="6sp" />
     </LinearLayout>
 
-    <View
+    <!-- ImageView, not View: RemoteViews may only inflate a fixed list of classes and View is not on it. -->
+    <ImageView
         android:id="@+id/widget_cell_line_top"
+        android:importantForAccessibility="no"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_gravity="top" />
 
-    <View
+    <ImageView
         android:id="@+id/widget_cell_line_end"
+        android:importantForAccessibility="no"
         android:layout_width="1dp"
         android:layout_height="match_parent"
         android:layout_gravity="end" />

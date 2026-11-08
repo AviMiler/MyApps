@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-08 (widget load fix)
+- Fixed: the widget could not be added ("לא ניתן להוסיף widget"): the grid-line views in
+  `widget_day_cell.xml` were plain `<View>`, which RemoteViews refuses to inflate. They are
+  `ImageView`s now. Widget layouts may only use FrameLayout, LinearLayout, RelativeLayout,
+  GridLayout, TextView, ImageView, Button, ImageButton, ProgressBar, Chronometer, TextClock, ViewFlipper.
+
 ## 2026-11-08 (updatable builds)
 - Changed: debug builds are signed with a committed fixed key (`app/debug.keystore`) and `versionCode`
   comes from `GITHUB_RUN_NUMBER`, so each CI APK installs as an update over the previous one.
