@@ -41,6 +41,20 @@
                 <data android:scheme="http" android:host="www.agora.co.il" />
             </intent-filter>
 
+            <!--
+                Links for rami-levy.co.il (e.g. the SMS "alternatives" link on
+                collect.rami-levy.co.il). Not verified, so Android offers this app in the
+                "open with" chooser; the user picks it (or sets it in "Open by default").
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="collect.rami-levy.co.il" />
+                <data android:scheme="https" android:host="www.rami-levy.co.il" />
+                <data android:scheme="https" android:host="rami-levy.co.il" />
+            </intent-filter>
+
         </activity>
     </application>
 </manifest>
