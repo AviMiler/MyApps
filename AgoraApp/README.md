@@ -1,7 +1,7 @@
 # web cors (AgoraApp) - דפדפן נעול לאתרים מוגדרים
 
 ## מה זה עושה
-- טוען אך ורק את agora.co.il / www.agora.co.il וכן את collect.rami-levy.co.il (למשל https://collect.rami-levy.co.il/confirm/alternatives/a3218802-9b97-4f23-9514-e283cbf94e2a) בתוך WebView.
+- טוען אך ורק את agora.co.il / www.agora.co.il וכן את כל האתר rami-levy.co.il על כל תתי-הדומיינים שלו (למשל collect.rami-levy.co.il) בתוך WebView.
 - כל ניסיון ניווט (קישור, הפניה, פופאפ) לכתובת אחרת **נחסם** ולא נטען בתוך האפליקציה בשום מקרה — הוא מועבר החוצה למערכת (לדפדפן/אפליקציה שהיו אמורים לטפל בו).
 - אם האפליקציה נפתחת דרך קישור שהוא לא agora.co.il, היא לא מציגה כלום — היא מעבירה מיד את הקישור החוצה וסוגרת את עצמה.
 
