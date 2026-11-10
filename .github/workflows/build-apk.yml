@@ -21,6 +21,8 @@ jobs:
         app:
           - dir: AgoraApp
             artifact: AgoraApp-debug-apk
+            # Direct phone download: releases/download/agora-latest/AgoraApp.apk
+            release_tag: agora-latest
           - dir: AlarmClock
             artifact: AlarmClock-debug-apk
           - dir: ClaudeCameraLauncher
