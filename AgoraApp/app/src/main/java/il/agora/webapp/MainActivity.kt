@@ -14,7 +14,8 @@ import androidx.appcompat.app.AppCompatActivity
  * This app is a single-purpose "kiosk browser" for ONE domain only: agora.co.il
  *
  * Rules enforced:
- * 1. The WebView will ONLY ever load pages whose host is agora.co.il (or www.agora.co.il).
+ * 1. The WebView will ONLY ever load pages whose host is agora.co.il (or www.agora.co.il),
+ *    or collect.rami-levy.co.il (e.g. https://collect.rami-levy.co.il/confirm/alternatives/a3218802-9b97-4f23-9514-e283cbf94e2a).
  * 2. ANY navigation attempt (link click, redirect, popup, form submit) to any other
  *    host is intercepted BEFORE it loads, and is handed off to the system (the user's
  *    normal default browser / the app that normally owns that link) instead of being
@@ -27,7 +28,7 @@ import androidx.appcompat.app.AppCompatActivity
 class MainActivity : AppCompatActivity() {
 
     // The only domain this app is allowed to display. Everything else is forwarded out.
-    private val allowedHosts = setOf("agora.co.il", "www.agora.co.il")
+    private val allowedHosts = setOf("agora.co.il", "www.agora.co.il", "collect.rami-levy.co.il")
     private val startUrl = "https://agora.co.il/"
 
     private lateinit var webView: WebView
