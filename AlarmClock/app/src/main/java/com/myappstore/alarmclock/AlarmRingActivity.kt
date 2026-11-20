@@ -7,7 +7,9 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
-import android.os.CountDownTimer
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
 import android.view.WindowManager
 import android.widget.Button
 import android.widget.TextView
@@ -17,13 +19,34 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-/** Full-screen alarm screen shown over the lock screen while the alarm rings. */
+/**
+ * Full-screen alarm screen shown over the lock screen while the alarm rings.
+ * It follows the service's single ring session (title and end time), so several
+ * alarms at the same moment show up as one screen.
+ */
 class AlarmRingActivity : AppCompatActivity() {
 
-    private var timer: CountDownTimer? = null
+    private val handler = Handler(Looper.getMainLooper())
+    private lateinit var labelView: TextView
+    private lateinit var remainingView: TextView
+    private lateinit var defaultLabel: String
 
     private val finishedReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) = finish()
+    }
+
+    private val tick = object : Runnable {
+        override fun run() {
+            val leftMs = AlarmService.ringEndsAt - SystemClock.elapsedRealtime()
+            if (leftMs <= 0) {
+                finish()
+                return
+            }
+            val left = ((leftMs + 999) / 1000).toInt()
+            remainingView.text = getString(R.string.ring_remaining, left / 60, left % 60)
+            labelView.text = AlarmService.activeTitle.ifBlank { defaultLabel }
+            handler.postDelayed(this, 500L)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,19 +55,16 @@ class AlarmRingActivity : AppCompatActivity() {
         setContentView(R.layout.activity_alarm_ring)
 
         val alarm = AlarmStore.get(this, intent.getIntExtra(AlarmScheduler.EXTRA_ALARM_ID, -1))
-        val labelView = findViewById<TextView>(R.id.ringLabel)
-        val clockView = findViewById<TextView>(R.id.ringClock)
-        val remainingView = findViewById<TextView>(R.id.ringRemaining)
-
-        clockView.text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
-        labelView.text = alarm?.label?.ifBlank { getString(R.string.app_name) }
+        defaultLabel = alarm?.label?.ifBlank { getString(R.string.app_name) }
             ?: getString(R.string.app_name)
-
-        if (alarm != null) {
-            startCountdown(alarm.ringSeconds, remainingView)
-        }
+        labelView = findViewById(R.id.ringLabel)
+        remainingView = findViewById(R.id.ringRemaining)
+        labelView.text = defaultLabel
+        findViewById<TextView>(R.id.ringClock).text =
+            SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
 
         findViewById<Button>(R.id.ringDismiss).setOnClickListener {
+            AppLog.i(this, "RingScreen", "dismiss pressed")
             sendToService(AlarmService.ACTION_STOP)
         }
 
@@ -54,19 +74,8 @@ class AlarmRingActivity : AppCompatActivity() {
             IntentFilter(AlarmService.ACTION_ALARM_FINISHED),
             ContextCompat.RECEIVER_NOT_EXPORTED
         )
-    }
-
-    private fun startCountdown(seconds: Int, view: TextView) {
-        timer = object : CountDownTimer(seconds * 1000L, 1000L) {
-            override fun onTick(millisUntilFinished: Long) {
-                val left = (millisUntilFinished / 1000).toInt()
-                view.text = getString(R.string.ring_remaining, left / 60, left % 60)
-            }
-
-            override fun onFinish() {
-                finish()
-            }
-        }.also { it.start() }
+        AppLog.i(this, "RingScreen", "shown")
+        handler.post(tick)
     }
 
     private fun sendToService(action: String) {
@@ -92,10 +101,11 @@ class AlarmRingActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        timer?.cancel()
+        handler.removeCallbacks(tick)
         runCatching { unregisterReceiver(finishedReceiver) }
     }
 
     /** Back must not silently kill the alarm - the user has to press dismiss. */
+    @Deprecated("Back is intentionally disabled while ringing")
     override fun onBackPressed() = Unit
 }

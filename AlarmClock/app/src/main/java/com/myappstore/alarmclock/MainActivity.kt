@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity() {
             onToggle = { alarm, enabled ->
                 alarm.enabled = enabled
                 AlarmStore.save(this, alarm)
-                AlarmScheduler.schedule(this, alarm)
+                AlarmScheduler.schedule(this, alarm, "toggled ${if (enabled) "on" else "off"} in list")
                 refresh()
             },
             onClick = { alarm -> openEditor(alarm.id) }
@@ -52,8 +52,17 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<FloatingActionButton>(R.id.addAlarm).setOnClickListener { openEditor(-1) }
         findViewById<Button>(R.id.grantExactAlarm).setOnClickListener { requestExactAlarmAccess() }
+        findViewById<Button>(R.id.shareLog).setOnClickListener { shareLog() }
 
         requestNotificationPermission()
+        AppLog.i(this, "Main", "app opened\n" + AppLog.snapshot(this).trimEnd())
+        // Safety net: re-arm everything whenever the app is opened.
+        AlarmScheduler.rescheduleAll(this, "app opened")
+    }
+
+    private fun shareLog() {
+        runCatching { startActivity(AppLog.buildShareIntent(this)) }
+            .onFailure { AppLog.e(this, "Main", "sharing the log failed", it) }
     }
 
     override fun onResume() {

@@ -190,7 +190,7 @@ class AlarmEditActivity : AppCompatActivity() {
         }
 
         AlarmStore.save(this, updated)
-        AlarmScheduler.schedule(this, updated)
+        AlarmScheduler.schedule(this, updated, "saved in editor")
         Toast.makeText(this, R.string.alarm_saved, Toast.LENGTH_SHORT).show()
         finish()
     }
